@@ -1,5 +1,6 @@
-
+import os
 def save_session(username):
+    os.makedirs("login_system/data", exist_ok=True)
     with open("login_system/data/session_user.txt", "w") as f:
         f.write(username)
 
