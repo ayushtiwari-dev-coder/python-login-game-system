@@ -6,9 +6,11 @@ def load_user():
         with open("login_system/data/data_user.txt", "r") as f:
             user=json.loads(f.read())
             return user
-    except:
+    except FileNotFoundError:
         return {}
 def save_user(username,password):
+    import os
+    os.makedirs("login_system/data",exist_ok=True)
 
     user=load_user()
     user[username]={
