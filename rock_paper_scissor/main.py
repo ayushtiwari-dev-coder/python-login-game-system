@@ -9,27 +9,27 @@ def play_rps(name):
         "scissors": "paper"
     }
 
-    options = ["rock", "paper", "scissors","stop","exit"]
-    moves=["rock","paper","scissors"]
+    options = ["rock", "paper", "scissors", "stop", "exit"]
+    moves = ["rock", "paper", "scissors"]
 
 
     def get_player_choice():
         """Ask player for a valid choice."""
         while True:
 
-            choice = input("Enter rock, paper, scissors  ('exit' or 'stop'): ").lower().strip()
-            if choice=="scissor":
-                choice="scissors"
+            choice = input("Enter rock, paper, scissors ('exit' or 'stop'): ").lower().strip()
+
+            if choice == "scissor":
+                choice = "scissors"
 
             if choice not in options:
                 print("Invalid option, try again.")
-
             else:
                 return choice
 
 
     def rules(player, computer):
-        """winner decider for each round."""
+        """Winner decider for each round."""
         if player == computer:
             return "draw"
 
@@ -41,25 +41,23 @@ def play_rps(name):
 
 
     def update_score(result, player_score, computer_score, name):
-        """update and print score."""
+        """Update and print score."""
         if result == "player":
             player_score += 1
             print(f"🔥 {name} wins this round!")
-            
+
         elif result == "computer":
             computer_score += 1
             print("💻 Computer wins this round!")
-            
+
         else:
             print("🤝 It's a draw!")
-            
 
         return player_score, computer_score
 
 
     def print_scoreboard(name, player_score, computer_score):
         """Display current scoreboard."""
-
         print("\n📊 Scoreboard")
         print(f"{name}: {player_score}  |  Computer: {computer_score}\n")
 
@@ -74,21 +72,38 @@ def play_rps(name):
         elif player_score == computer_score:
             print("\n⚖️ Match ended in a DRAW!\n")
             return "draws"
+
         else:
             print("\n💻 Computer wins the MATCH!\n")
             return "losses"
 
 
+    def get_rounds():
+        while True:
+            try:
+                rounds = int(input("Enter number of rounds till 20: "))
+
+                if 0 < rounds <= 20:
+                    return rounds
+                else:
+                    print("Invalid input, try again.")
+
+            except ValueError:
+                print("Invalid input, please enter a number.")
+
+
     # Game Modes
     def endless_mode(name):
-        print("\nType 'exit or stop' anytime to return to dashboard")
+
+        print("\nType 'exit' or 'stop' anytime to return to dashboard")
+
         player_score, computer_score = 0, 0
 
         while True:
 
             player = get_player_choice()
-            if player in ["rock","paper","scissors"]:
 
+            if player in ["rock", "paper", "scissors"]:
 
                 computer = random.choice(moves)
 
@@ -96,95 +111,95 @@ def play_rps(name):
 
                 result = rules(player, computer)
 
-                player_score, computer_score = update_score(result, player_score, computer_score, name)
+                player_score, computer_score = update_score(
+                    result, player_score, computer_score, name
+                )
 
                 print_scoreboard(name, player_score, computer_score)
 
-            elif player in ["stop","exit"]:
+            elif player in ["stop", "exit"]:
 
-                result=announce_winner(name, player_score, computer_score)
+                result = announce_winner(name, player_score, computer_score)
 
                 print(f"Which mode next, {name}?")
+
                 return result
 
 
     def limited_mode(name, rounds):
-        print("\nType 'exit or stop' anytime to return to dashboard")
-        while True:
 
-            player_score, computer_score = 0, 0
+        print("\nType 'exit' or 'stop' anytime to return to dashboard")
 
-            for current_round in range(1, rounds + 1):
+        player_score, computer_score = 0, 0
 
-                print(f"\n⚔️  Round {current_round} – Fight!\n")
+        for current_round in range(1, rounds + 1):
 
-                player = get_player_choice()
-                if player in ["stop","exit"]:
-                    print("game stopped early")
-                    result=announce_winner(name,player_score,computer_score)
-                    return result
+            print(f"\n⚔️ Round {current_round} – Fight!\n")
 
-                computer = random.choice(moves)
+            player = get_player_choice()
 
-                print(f"🤖 Computer chose: {computer.upper()}")
+            if player in ["stop", "exit"]:
+                print("Game stopped early")
+                return None
 
-                result = rules(player, computer)
+            computer = random.choice(moves)
 
-                player_score, computer_score = update_score(result, player_score, computer_score, name)
+            print(f"🤖 Computer chose: {computer.upper()}")
 
-                print_scoreboard(name, player_score, computer_score)
+            result = rules(player, computer)
 
-            result=announce_winner(name, player_score, computer_score)
-            while True:
-                play = input("Replay same mode? (yes/no): ").lower().strip()
+            player_score, computer_score = update_score(
+                result, player_score, computer_score, name
+            )
 
-                if play in ["no", "n"]:
+            print_scoreboard(name, player_score, computer_score)
 
-                    print(f"Which mode next, {name}")
-                    return result
-                elif play in ["yes","ye","y"]:
-                    break
-                else:
-                    print("invalid input,please type 'yes or no' ")
+        result = announce_winner(name, player_score, computer_score)
 
-    print("\n" + "="*40)
+        return result
+
+
+    print("\n" + "=" * 40)
     print(f"🔥 Welcome {name} to ROCK PAPER SCISSORS 🔥")
-    print("="*40 + "\n")
+    print("=" * 40 + "\n")
 
 
     while True:
 
         print("\n🎮 Choose Game Mode:")
-        print("1️⃣  Endless Mode")
-        print("2️⃣  Limited Mode")
-        print("3️⃣  Exit\n")
+        print("1️⃣ Endless Mode")
+        print("2️⃣ Limited Mode")
+        print("3️⃣ Exit\n")
 
         mode = input("Enter 1 or 2 or 3: ").lower()
 
         if mode in ["1", "endless", "e", "en"]:
-            endless_mode(name)
+
+            result=endless_mode(name)
+            return result
+
 
         elif mode in ["2", "limited", "limit", "li"]:
 
             while True:
-                try:
-                    rounds = int(input("Enter number of rounds (3, 5, or 10): "))
 
-                    if 0 < rounds <= 20:
-                        break
+                rounds = get_rounds()
 
-                    else:
-                        print("Invalid input, try again.")
+                result = limited_mode(name, rounds)
 
-                except ValueError:
-                    print("Invalid input, please enter a number.")
+                if result is None:
+                    break
 
-            limited_mode(name, rounds)
+                return result
+
 
         elif mode in ["3", "exit", "exi", "ex"]:
 
             print("\n🎮 Thanks for playing! See you again!\n")
-            return
+
+            return "exit"
+
 
         else:
+
             print("Invalid input, please try again.")
