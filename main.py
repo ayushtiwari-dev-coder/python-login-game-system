@@ -89,7 +89,7 @@ def dashboard_player(name,username):
                         if option_chosen in ["1","rock paper scissor","rock paper","rock"]:
                             while True:
                                 result=play_rps(name)
-                                if result == "exit":
+                                if result == "cancel_match":
                                      break
                                 if result:
                                      user=load_user()
@@ -106,7 +106,7 @@ def dashboard_player(name,username):
                         elif option_chosen in ["2","hand cricket","cricket"]:
                             while True:
                                  result=hand_cricket_dashboard(name)
-                                 if result == "exit":
+                                 if result == "cancel_match":
                                       break
                                  if result:
                                       user=load_user()
