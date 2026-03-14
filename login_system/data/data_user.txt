@@ -38,10 +38,10 @@
         "password": "ca74caceb611296fc1195ea15bc9b7ac1b3c4aaf674ac22186bb4d88194ca906",
         "lock_until": 0,
         "rps": {
-            "wins": 3,
-            "losses": 2,
+            "wins": 0,
+            "losses": 0,
             "matches": 0,
-            "draws": 3
+            "draws": 0
         },
         "hand_cricket": {
             "wins": 0,
@@ -133,6 +133,40 @@
             "losses": 0,
             "matches": 0,
             "highest_score": 0
+        }
+    },
+    "ayush_88": {
+        "name": "Aysuh",
+        "password": "89567b5e7b763748eb5d4cd4c81210588290b236b414cb7d4e9cf45faa283108",
+        "lock_until": 0,
+        "rps": {
+            "wins": 0,
+            "losses": 0,
+            "matches": 0,
+            "draws": 0
+        },
+        "hand_cricket": {
+            "wins": 0,
+            "losses": 0,
+            "matches": 0,
+            "highest_score": 0
+        }
+    },
+    "joginder-23": {
+        "name": "Joginder",
+        "password": "20e1e42e83b80bb76c5b3f4aac908b5e17114ed81666bf2f3b24b805cbe0a604",
+        "lock_until": 0,
+        "rps": {
+            "wins": 2,
+            "losses": 3,
+            "matches": 5,
+            "draws": 0
+        },
+        "hand_cricket": {
+            "wins": 1,
+            "losses": 1,
+            "matches": 2,
+            "draws": 0
         }
     }
 }
