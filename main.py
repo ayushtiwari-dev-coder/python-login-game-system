@@ -5,38 +5,61 @@ from file_handler import save_user,load_user,update_user
 from login_logic import create_account,login,setup_name
 from rock_paper_scissor.main import play_rps
 from session_manager import save_session,load_session,clear_session
+from hand_cricket.main import hand_cricket_dashboard
 
 def profile_stats(name, username):
 
-    user=load_user()
+    user = load_user()
 
-    print("\n" + "="*45)
-    print("📁  PROFILE STATS")
-    print("="*45)
+    print("\n" + "="*50)
+    print("📁                PROFILE STATS")
+    print("="*50)
 
-    print(f"\n👋 Welcome {name}!")
-    print("Here are your Rock Paper Scissors stats:\n")
+    print(f"\n👤 Player : {name}\n")
 
-    matches = user[username]["rps"]["matches"]
-    wins = user[username]["rps"]["wins"]
-    losses = user[username]["rps"]["losses"]
-    draws = user[username]["rps"]["draws"]
+    # -------- ROCK PAPER SCISSORS --------
+    rps_matches = user[username]["rps"]["matches"]
+    rps_wins = user[username]["rps"]["wins"]
+    rps_losses = user[username]["rps"]["losses"]
+    rps_draws = user[username]["rps"]["draws"]
 
-    if matches > 0:
-        win_rate = (wins / matches) * 100
+    if rps_matches > 0:
+        rps_win_rate = (rps_wins / rps_matches) * 100
     else:
-        win_rate = 0
+        rps_win_rate = 0
 
-    print("📊 RPS Statistics")
-    print("-"*30)
+    print("🪨 ROCK PAPER SCISSORS")
+    print("-"*40)
 
-    print(f"🎮 Total Matches Played : {matches}")
-    print(f"🏆 Total Wins           : {wins}")
-    print(f"💀 Total Losses         : {losses}")
-    print(f"🤝 Total Draws          : {draws}")
-    print(f"📈 Win Rate             : {win_rate:.2f}%")
+    print(f"🎮 Matches Played : {rps_matches}")
+    print(f"🏆 Wins           : {rps_wins}")
+    print(f"💀 Losses         : {rps_losses}")
+    print(f"🤝 Draws          : {rps_draws}")
+    print(f"📈 Win Rate       : {rps_win_rate:.2f}%")
 
-    print("\n" + "="*45)
+    print("\n" + "-"*50)
+
+    # -------- HAND CRICKET --------
+    hc_matches = user[username]["hand_cricket"]["matches"]
+    hc_wins = user[username]["hand_cricket"]["wins"]
+    hc_losses = user[username]["hand_cricket"]["losses"]
+    hc_draws = user[username]["hand_cricket"]["draws"]
+
+    if hc_matches > 0:
+        hc_win_rate = (hc_wins / hc_matches) * 100
+    else:
+        hc_win_rate = 0
+
+    print("\n🏏 HAND CRICKET")
+    print("-"*40)
+
+    print(f"🎮 Matches Played : {hc_matches}")
+    print(f"🏆 Wins           : {hc_wins}")
+    print(f"💀 Losses         : {hc_losses}")
+    print(f"🤝 Draws          : {hc_draws}")
+    print(f"📈 Win Rate       : {hc_win_rate:.2f}%")
+
+    print("\n" + "="*50)
 
     input("\nPress Enter to return to dashboard...")
 
@@ -53,7 +76,7 @@ def dashboard_player(name,username):
                         print("Choose an option:\n")
 
                         print("1️⃣  🪨 Rock Paper Scissors")
-                        print("2️⃣  🏏 Hand Cricket (Coming Soon)")
+                        print("2️⃣  🏏 Hand Cricket ")
                         print("3️⃣  📁 Profile Stats")
                         print("4️⃣  📊 Leaderboard (Coming Soon)")
                         print("5️⃣  🔓 Logout")
@@ -81,7 +104,22 @@ def dashboard_player(name,username):
                                      update_user(user)                                
 
                         elif option_chosen in ["2","hand cricket","cricket"]:
-                            print("Hand Cricket is rolling out soon(stay tuned)")
+                            while True:
+                                 result=hand_cricket_dashboard(name)
+                                 if result == "exit":
+                                      break
+                                 if result:
+                                      user=load_user()
+                                      user[username]["hand_cricket"]["matches"] +=1
+                                      if result == "wins":
+                                          user[username]["hand_cricket"]["wins"] +=1
+                                      elif result == "losses":
+                                          user[username]["hand_cricket"]["losses"] +=1
+                                      elif result == "draws":
+                                          user[username]["hand_cricket"]["draws"] +=1
+
+                                      update_user(user)                       
+                                      
 
 
                         elif option_chosen in ["3","profile stats"]:
