@@ -1,5 +1,6 @@
 import random
-
+import time
+from .ai_brainlogic import get_motive,pick_number
 
 
 random_commentary = [
@@ -74,13 +75,18 @@ class CancelMatch(Exception):
     pass
 
 
-def get_player_choice(name):
+def get_player_choice(name,timed=True):
     while True:
-        player_choice = input(
-            f"\n{name}, choose a number (1-6)\n"
-            "Type 'exit' or 'stop' to leave the match\n"
-            "👉 Your choice: "
-        ).lower().strip()
+        if timed:
+            print("⏰ You have 3 seconds!")
+            start = time.time()
+        player_choice = player_choice = input(f"👉 {name}, your choice: ").lower().strip()
+
+        if timed:
+            elapsed = time.time() - start
+            if elapsed > 3:
+                print("⏰ Too slow! Penalty!")
+                return "penalty"
 
         if player_choice in exit_choice:
             raise CancelMatch
@@ -90,7 +96,7 @@ def get_player_choice(name):
             if number in number_choice:
                 return number
 
-        print("❌ Invalid input. Choose a number between 1 and 6.")
+        print("❌ Invalid input.")
 
 
 def toss_logic(name):
@@ -107,7 +113,7 @@ def toss_logic(name):
 
         print("❌ Invalid choice. Type 'odd' or 'even'.")
 
-    player_number = get_player_choice(name)
+    player_number = get_player_choice(name,timed=False)
     computer_number = random.choice(number_choice)
 
     print(f"\n🎲 Toss numbers → {name}: {player_number} | Computer: {computer_number}")
@@ -156,17 +162,25 @@ def decide_innings(match):
     match["first_batter"] = batting
 
 
-def play_ball(match):
+def play_ball(match,score,balls):
 
     if match["batting"] == "player":
         batter_choice = get_player_choice(match["name"])
-        bowler_choice = random.choice(number_choice)
+        motive=get_motive(match,score,balls)
+        bowler_choice=pick_number(motive)
         print(f"🎯 Ball → {match['name']}: {batter_choice} | Computer: {bowler_choice}")
+        if batter_choice == "penalty":
+            print("💸 Penalty! -20 runs!")
+            return "batting_penalty"
 
     else:
-        batter_choice = random.choice(number_choice)
+        motive=get_motive(match,score,balls)
+        batter_choice=pick_number(motive)
         bowler_choice = get_player_choice(match["name"])
         print(f"🎯 Ball → Computer: {batter_choice} | {match['name']}: {bowler_choice}")
+        if bowler_choice == "penalty":
+            print("💸 Too slow! Computer scores free runs!")
+            return "bowling_penalty"
 
     if batter_choice == bowler_choice:
         print(random.choice(out_commentary))
@@ -201,12 +215,22 @@ def play_innings(match, label, total_balls=None):
 
     while True:
 
-        result = play_ball(match)
+        result = play_ball(match,score,balls)
 
         balls += 1
 
         if result == "out":
             break
+
+        if result == "batting_penalty":
+            score = max(0, score - 20)
+            print(f"📊 Score after penalty: {score}\n")
+            continue
+
+        if result == "bowling_penalty":
+            score += 20
+            print(f"📊 Computer scores 20! Score: {score}\n")
+            continue
 
         score += result
 
