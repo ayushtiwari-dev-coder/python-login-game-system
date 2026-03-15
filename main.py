@@ -43,7 +43,6 @@ def profile_stats(name, username):
     hc_matches = user[username]["hand_cricket"]["matches"]
     hc_wins = user[username]["hand_cricket"]["wins"]
     hc_losses = user[username]["hand_cricket"]["losses"]
-    hc_draws = user[username]["hand_cricket"]["draws"]
 
     if hc_matches > 0:
         hc_win_rate = (hc_wins / hc_matches) * 100
@@ -56,7 +55,6 @@ def profile_stats(name, username):
     print(f"🎮 Matches Played : {hc_matches}")
     print(f"🏆 Wins           : {hc_wins}")
     print(f"💀 Losses         : {hc_losses}")
-    print(f"🤝 Draws          : {hc_draws}")
     print(f"📈 Win Rate       : {hc_win_rate:.2f}%")
 
     print("\n" + "="*50)
@@ -115,8 +113,6 @@ def dashboard_player(name,username):
                                           user[username]["hand_cricket"]["wins"] +=1
                                       elif result == "losses":
                                           user[username]["hand_cricket"]["losses"] +=1
-                                      elif result == "draws":
-                                          user[username]["hand_cricket"]["draws"] +=1
 
                                       update_user(user)                       
                                       

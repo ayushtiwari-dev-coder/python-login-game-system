@@ -1,8 +1,77 @@
 import random
 
+
+
+random_commentary = [
+"Both players hiding their fingers carefully...",
+"The bowler squints at the batter's hand trying to guess the number.",
+"A quick shake of the hands before the next throw.",
+"The batter looks at the bowler suspiciously.",
+"The bowler adjusts his fingers slowly.",
+"Mind games happening between both players.",
+"The crowd watches the fingers closely.",
+"A moment of silence before the fingers are revealed.",
+"The batter smiles while showing the number.",
+"The bowler quickly flashes a number with confidence.",
+"Both players try to read each other's mind.",
+"A quick hand movement from the batter.",
+"The bowler hesitates before showing fingers.",
+"The tension rises as both reveal their numbers.",
+"The batter hides his hand behind his back first.",
+"A clever trick with the fingers!",
+"Both hands come out at the same time!",
+"The bowler studies the batter's fingers carefully.",
+"A calm moment before the next hand reveal.",
+"The players prepare their fingers for the next move."
+]
+
+out_commentary = [
+"Same fingers! OUT!",
+"Oh no! The numbers matched perfectly!",
+"The bowler guessed it right — OUT!",
+"The batter shows the same number — that's OUT!",
+"What a prediction by the bowler!",
+"The fingers match! The batter is gone!",
+"The bowler reads the batter's mind!",
+"Both hands show the same number — OUT!",
+"The trick failed! The batter is dismissed!",
+"Perfect guess by the bowler! OUT!"
+]
+
+four_commentary = [
+"A perfect FOUR with the fingers!",
+"Four fingers up! That's a boundary!",
+"The batter flashes FOUR confidently!",
+"Nice move! FOUR runs!",
+"The bowler didn't expect that FOUR!",
+"A quick FOUR from the batter!",
+"The batter shows four fingers proudly!",
+"FOUR! Smart choice!",
+"A clever FOUR from the batter!",
+"The fingers say FOUR!"
+]
+
+six_commentary = [
+"SIX fingers up! That's a big hit!",
+"Massive SIX from the batter!",
+"The batter boldly shows SIX!",
+"What a confident SIX!",
+"The bowler is shocked — SIX!",
+"A powerful SIX from the hand!",
+"The batter goes big with SIX!",
+"SIX! The crowd goes wild!",
+"The batter flashes six fingers!",
+"That's a huge SIX!"
+]
+
+
 exit_choice = ["stop", "exit"]
-number_choice = [1, 2, 3, 4, 5, 6]
-choice_toss = ["bat", "bowl"]
+number_choice = (1, 2, 3, 4, 5, 6)
+choice_toss = ("bat", "bowl")
+
+
+class CancelMatch(Exception):
+    pass
 
 
 def get_player_choice(name):
@@ -14,7 +83,7 @@ def get_player_choice(name):
         ).lower().strip()
 
         if player_choice in exit_choice:
-            return player_choice
+            raise CancelMatch
 
         if player_choice.isdigit():
             number = int(player_choice)
@@ -39,10 +108,6 @@ def toss_logic(name):
         print("❌ Invalid choice. Type 'odd' or 'even'.")
 
     player_number = get_player_choice(name)
-
-    if player_number in exit_choice:
-        return "cancel_match"
-
     computer_number = random.choice(number_choice)
 
     print(f"\n🎲 Toss numbers → {name}: {player_number} | Computer: {computer_number}")
@@ -58,18 +123,14 @@ def toss_logic(name):
         return "computer"
 
 
-def decide_innings(name):
+def decide_innings(match):
 
-    toss_winner = toss_logic(name)
-
-    if toss_winner == "cancel_match":
-        return "cancel_match"
+    toss_winner = toss_logic(match["name"])
 
     if toss_winner == "player":
-
         while True:
             toss_decision = input(
-                f"\n{name}, choose your decision:\n"
+                f"\n{match['name']}, choose your decision:\n"
                 "👉 Type 'bat' or 'bowl': "
             ).lower().strip()
 
@@ -77,7 +138,6 @@ def decide_innings(name):
                 break
 
             print("❌ Invalid choice. Choose 'bat' or 'bowl'.")
-
     else:
         toss_decision = random.choice(choice_toss)
         print(f"\n💻 Computer chooses to {toss_decision.upper()} first.\n")
@@ -89,49 +149,59 @@ def decide_innings(name):
         bowling = toss_winner
         batting = "computer" if toss_winner == "player" else "player"
 
-    return batting, bowling, toss_winner, toss_decision
+    match["toss_winner"] = toss_winner
+    match["toss_decision"] = toss_decision
+    match["batting"] = batting
+    match["bowling"] = bowling
+    match["first_batter"] = batting
 
 
-def play_ball(batting, bowling, name):
+def play_ball(match):
 
-    if batting == "player":
-        batter_choice = get_player_choice(name)
+    if match["batting"] == "player":
+        batter_choice = get_player_choice(match["name"])
         bowler_choice = random.choice(number_choice)
-        print(f"🎯 Ball → {name}: {batter_choice} | Computer: {bowler_choice}")
+        print(f"🎯 Ball → {match['name']}: {batter_choice} | Computer: {bowler_choice}")
 
     else:
         batter_choice = random.choice(number_choice)
-        bowler_choice = get_player_choice(name)
-        print(f"🎯 Ball → Computer: {batter_choice} | {name}: {bowler_choice}")
-
-    if batter_choice in exit_choice:
-        return "cancel_match"
-
-    if bowler_choice in exit_choice:
-        return "cancel_match"
+        bowler_choice = get_player_choice(match["name"])
+        print(f"🎯 Ball → Computer: {batter_choice} | {match['name']}: {bowler_choice}")
 
     if batter_choice == bowler_choice:
-        print(f"💥 OUT! {name if batting=='player' else 'Computer'} is dismissed!\n")
+        print(random.choice(out_commentary))
+        print(f"💥 OUT! {match['name'] if match['batting'] == 'player' else 'Computer'} is dismissed!\n")
         return "out"
+    
+    if batter_choice==4:
+        print(random.choice(four_commentary))
+
+    elif batter_choice==6:
+        print(random.choice(six_commentary))
+    
+    else:
+        print(random.choice(random_commentary))
 
     return batter_choice
 
 
-def first_inning(batting, bowling, name):
+def play_innings(match, label, total_balls=None):
 
     print("\n" + "=" * 35)
-    print("🏏 FIRST INNINGS START")
+    print(f"🏏 {label}")
     print("=" * 35)
+
+    target = match.get("target")
+
+    if target:
+        print(f"\n🎯 Target to chase: {target}\n")
 
     score = 0
     balls = 0
 
     while True:
 
-        result = play_ball(batting, bowling, name)
-
-        if result == "cancel_match":
-            return "cancel_match"
+        result = play_ball(match)
 
         balls += 1
 
@@ -140,247 +210,138 @@ def first_inning(batting, bowling, name):
 
         score += result
 
-        print(f"📊 Score: {score} | Balls: {balls}\n")
-
-    print(f"\n✅ First Innings Finished → {score} runs ({balls} balls)\n")
-
-    return score, balls
-
-
-def second_innings(batting, bowling, first_score, name):
-
-    target = first_score + 1
-
-    print("\n" + "=" * 35)
-    print("🏏 SECOND INNINGS START")
-    print("=" * 35)
-
-    print(f"\n🎯 Target to chase: {target}\n")
-
-    score = 0
-    balls = 0
-
-    while True:
-
-        result = play_ball(batting, bowling, name)
-
-        if result == "cancel_match":
-            return "cancel_match"
-
-        balls += 1
-
-        if result == "out":
-            break
-
-        score += result
-
-        if score >= target:
+        if target and score >= target:
             print("🎯 Target chased successfully!\n")
             break
 
-        print(f"📊 Score: {score} | Balls: {balls}\n")
-
-    print(f"\n✅ Second Innings Finished → {score} runs ({balls} balls)\n")
-
-    return score, balls
-
-
-def first_inning_limited(batting, bowling, name, total_balls):
-
-    print("\n" + "=" * 35)
-    print("🏏 FIRST INNINGS START (LIMITED MODE)")
-    print("=" * 35)
-
-    score = 0
-    balls = 0
-
-    while True:
-
-        result = play_ball(batting, bowling, name)
-
-        if result == "cancel_match":
-            return "cancel_match"
-
-        balls += 1
-
-        if result == "out":
-            break
-
-        score += result
-
-        if balls >= total_balls:
+        if total_balls and balls >= total_balls:
             print("\n⏱ Overs completed!")
             break
 
         print(f"📊 Score: {score} | Balls: {balls}\n")
 
-    print(f"\n✅ First Innings Finished → {score} runs ({balls} balls)\n")
+    print(f"\n✅ Innings Finished → {score} runs ({balls} balls)\n")
 
     return score, balls
 
 
-def second_innings_limited(batting, bowling, first_score, name, total_balls):
-
-    target = first_score + 1
-
-    print("\n" + "=" * 35)
-    print("🏏 SECOND INNINGS START (LIMITED MODE)")
-    print("=" * 35)
-
-    print(f"\n🎯 Target to chase: {target}\n")
-
-    score = 0
-    balls = 0
-
-    while True:
-
-        result = play_ball(batting, bowling, name)
-
-        if result == "cancel_match":
-            return "cancel_match"
-
-        balls += 1
-
-        if result == "out":
-            break
-
-        score += result
-
-        if score >= target:
-            print("🎯 Target chased successfully!\n")
-            break
-
-        if balls >= total_balls:
-            print("\n⏱ Overs completed!")
-            break
-
-        print(f"📊 Score: {score} | Balls: {balls}\n")
-
-    print(f"\n✅ Second Innings Finished → {score} runs ({balls} balls)\n")
-
-    return score, balls
-
-
-def win_announcement(first_batter, first_score, first_balls, second_score, second_balls, toss_winner, toss_decision, name):
+def win_announcement(match):
 
     print("\n" + "=" * 40)
     print("🏏        MATCH SUMMARY        🏏")
     print("=" * 40)
 
-    winner_name = name if toss_winner == "player" else "Computer"
+    winner_name = match["name"] if match["toss_winner"] == "player" else "Computer"
 
-    print(f"\n🎲 Toss: {winner_name} won the toss and chose to {toss_decision.upper()} first\n")
+    print(f"\n🎲 Toss: {winner_name} won the toss and chose to {match['toss_decision'].upper()} first\n")
 
     print("📊 SCOREBOARD\n")
+    print(f"1️⃣  First Innings  : {match['first_score']} runs ({match['first_balls']} balls)")
+    print(f"2️⃣  Second Innings : {match['second_score']} runs ({match['second_balls']} balls)\n")
 
-    print(f"1️⃣  First Innings  : {first_score} runs ({first_balls} balls)")
-    print(f"2️⃣  Second Innings : {second_score} runs ({second_balls} balls)\n")
+    winner=None
 
-    if second_score > first_score:
-        winner = "computer" if first_batter == "player" else "player"
-    elif second_score < first_score:
-        winner = first_batter
-    else:
-        winner = "draw"
+    if match["second_score"] > match["first_score"]:
+        winner = "computer" if match["first_batter"] == "player" else "player"
+    elif match["second_score"] < match["first_score"]:
+        winner = match["first_batter"]
+
 
     if winner == "player":
-        print(f"\n🔥 {name} WINS THE MATCH!\n")
+        print(f"\n🔥 {match['name']} WINS THE MATCH!\n")
         return "wins"
-
     elif winner == "computer":
         print("\n💻 COMPUTER WINS THE MATCH!\n")
         return "losses"
 
-    else:
-        print("\n⚖️ MATCH DRAW!\n")
-        return "draws"
+
+def super_over(match):
+    while True:
+        print("\n" + "=" * 40)
+        print("🔥 SUPER OVER TIME! 🔥")
+        print("=" * 40)
+
+        score1, balls1 = play_innings(match, "SUPER OVER - INNINGS 1", total_balls=6)
+
+        match["batting"], match["bowling"] = match["bowling"], match["batting"]
+        match["target"] = score1 + 1
+
+        score2, balls2 = play_innings(match, "SUPER OVER - INNINGS 2", total_balls=6)
+        win_announcement(match)
+
+        print("\n" + "=" * 40)
+        print("🔥        SUPER OVER RESULT        🔥")
+        print("=" * 40)
+        print(f"\n{match['name']} : {score1} runs ({balls1} balls)")
+        print(f"Computer : {score2} runs ({balls2} balls)\n")
+        print("-" * 40)
+
+        if score1 > score2:
+            print(f"\n🏆 {match['name']} WINS THE MATCH AFTER SUPER OVER!\n")
+            return "wins"
+        elif score2 > score1:
+            print("\n💻 COMPUTER WINS THE MATCH AFTER SUPER OVER!\n")
+            return "losses"
+        else:
+            print("\n⚖️ SUPER OVER ALSO TIED! ANOTHER SUPER OVER\n")
+            continue
 
 
 def endless_mode(name):
+    try:
+        match = {"name": name}
 
-    result = decide_innings(name)
+        decide_innings(match)
 
-    if result == "cancel_match":
+        match["first_score"], match["first_balls"] = play_innings(match, "FIRST INNINGS")
+
+        match["batting"], match["bowling"] = match["bowling"], match["batting"]
+        match["target"] = match["first_score"] + 1
+
+        match["second_score"], match["second_balls"] = play_innings(match, "SECOND INNINGS")
+
+        if match["first_score"] == match["second_score"]:
+            return super_over(match)
+
+        return win_announcement(match)
+
+    except CancelMatch:
         return "cancel_match"
-
-    batting, bowling, toss_winner, toss_decision = result
-
-    first_batter = batting
-
-    result = first_inning(batting, bowling, name)
-
-    if result == "cancel_match":
-        return "cancel_match"
-
-    first_score, first_balls = result
-
-    batting, bowling = bowling, batting
-
-    result = second_innings(batting, bowling, first_score, name)
-
-    if result == "cancel_match":
-        return "cancel_match"
-
-    second_score, second_balls = result
-
-    return win_announcement(
-        first_batter,
-        first_score,
-        first_balls,
-        second_score,
-        second_balls,
-        toss_winner,
-        toss_decision,
-        name
-    )
 
 
 def limited_mode(name):
+    try:
+        while True:
+            overs = input(f"\n{name}, enter number of overs (1-10): ").strip()
 
-    while True:
-        overs = input(f"\n{name}, enter number of overs (1-10): ").strip()
+            if overs.isdigit():
+                overs = int(overs)
+                if 1 <= overs <= 10:
+                    break
 
-        if overs.isdigit():
-            overs = int(overs)
-            if 1 <= overs <= 10:
-                break
+            print("❌ Invalid input. Choose between 1 and 10 overs.")
 
-        print("❌ Invalid input. Choose between 1 and 10 overs.")
+        total_balls = overs * 6
 
-    total_balls = overs * 6
+        match = {"name": name}
 
-    result = decide_innings(name)
+        decide_innings(match)
 
-    if result == "cancel_match":
+        match["first_score"], match["first_balls"] = play_innings(
+            match, "FIRST INNINGS (LIMITED MODE)", total_balls=total_balls
+        )
+
+        match["batting"], match["bowling"] = match["bowling"], match["batting"]
+        match["target"] = match["first_score"] + 1
+
+        match["second_score"], match["second_balls"] = play_innings(
+            match, "SECOND INNINGS (LIMITED MODE)", total_balls=total_balls
+        )
+
+        if match["first_score"] == match["second_score"]:
+            return super_over(match)
+
+        return win_announcement(match)
+
+    except CancelMatch:
         return "cancel_match"
-
-    batting, bowling, toss_winner, toss_decision = result
-
-    first_batter = batting
-
-    result = first_inning_limited(batting, bowling, name, total_balls)
-
-    if result == "cancel_match":
-        return "cancel_match"
-
-    first_score, first_balls = result
-
-    batting, bowling = bowling, batting
-
-    result = second_innings_limited(batting, bowling, first_score, name, total_balls)
-
-    if result == "cancel_match":
-        return "cancel_match"
-
-    second_score, second_balls = result
-
-    return win_announcement(
-        first_batter,
-        first_score,
-        first_balls,
-        second_score,
-        second_balls,
-        toss_winner,
-        toss_decision,
-        name
-    )
