@@ -49,6 +49,3 @@ def hand_cricket_dashboard(name):
 
         else:
             print("\n❌ Invalid choice. Please try again.")
-
-
-    

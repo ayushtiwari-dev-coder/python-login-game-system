@@ -80,6 +80,3 @@ def pick_number(motive):
         weights=[1,1,1,1,1,1]
         
     return random.choices(number_choice,weights=weights)[0]
-
-
-
