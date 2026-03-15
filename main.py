@@ -87,7 +87,7 @@ def dashboard_player(name,username):
                         if option_chosen in ["1","rock paper scissor","rock paper","rock"]:
                             while True:
                                 result=play_rps(name)
-                                if result == "cancel_match":
+                                if result == "exit":
                                      break
                                 if result:
                                      user=load_user()
