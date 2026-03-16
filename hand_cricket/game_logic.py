@@ -175,8 +175,11 @@ def play_ball(match,score,balls):
 
     else:
         motive=get_motive(match,score,balls)
+
         batter_choice=pick_number(motive)
+
         bowler_choice = get_player_choice(match["name"])
+
         print(f"🎯 Ball → Computer: {batter_choice} | {match['name']}: {bowler_choice}")
         if bowler_choice == "penalty":
             print("💸 Too slow! Computer scores free runs!")
@@ -205,6 +208,13 @@ def play_innings(match, label, total_balls=None):
     print(f"🏏 {label}")
     print("=" * 35)
 
+    if match["batting"] == "player":
+        print(f"\n🏏 {match['name']} is BATTING")
+        print("🎯 Computer is BOWLING\n")
+    else:
+        print("\n🏏 Computer is BATTING")
+        print(f"🎯 {match['name']} is BOWLING\n")
+
     target = match.get("target")
 
     if target:
@@ -225,14 +235,14 @@ def play_innings(match, label, total_balls=None):
         if result == "batting_penalty":
             score = max(0, score - 20)
             print(f"📊 Score after penalty: {score}\n")
-            continue
+            
 
-        if result == "bowling_penalty":
+        elif result == "bowling_penalty":
             score += 20
             print(f"📊 Computer scores 20! Score: {score}\n")
-            continue
-
-        score += result
+            
+        else:
+            score += result
 
         if target and score >= target:
             print("🎯 Target chased successfully!\n")
@@ -243,6 +253,15 @@ def play_innings(match, label, total_balls=None):
             break
 
         print(f"📊 Score: {score} | Balls: {balls}\n")
+        if target:
+            runs_remaining=target-score
+            if runs_remaining>0:
+                if total_balls:
+                    balls_left=total_balls-balls
+                    print(f"🎯 {runs_remaining} runs needed from {balls_left} balls\n")
+                else:
+                    print(f"🎯 {runs_remaining} runs needed to win\n")
+                
 
     print(f"\n✅ Innings Finished → {score} runs ({balls} balls)\n")
 
