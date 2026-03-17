@@ -1,6 +1,17 @@
 import random
 number_choice=(1,2,3,4,5,6)
 
+motive_weights = {
+    "freestyle":    [1, 2, 1, 2, 1, 1],
+    "balanced":     [1, 2, 3, 3, 2, 1],
+    "aggressive":   [1, 1, 2, 3, 4, 4],
+    "conservative": [2, 3, 3, 2, 1, 1],
+    "desperate":    [1, 1, 1, 2, 5, 5],
+    "bowling_high":   [1, 1, 2, 2, 3, 3],
+    "bowling_normal": [1, 1, 2, 3, 3, 2],
+    "bowling_low":    [1, 1, 2, 3, 2, 2],
+}
+
 def get_motive(match,score,balls):
     total_balls=match.get("total_balls")
     target=match.get("target")
@@ -59,24 +70,62 @@ def get_motive(match,score,balls):
             return "bowling_low"
 
 def pick_number(motive):
-    if motive == "freestyle":
-        weights = [1, 2, 1, 2, 1, 1]
-    elif motive == "balanced":
-        weights = [1, 2, 3, 3, 2, 1]
-    elif motive == "aggressive":
-        weights = [1, 1, 2, 3, 4, 4]
-    elif motive == "conservative":
-        weights = [2, 3, 3, 2, 1, 1]
-    elif motive == "desperate":
-        weights = [1, 1, 1, 2, 5, 5]
-    elif motive == "bowling_high":
-        weights = [1, 1, 2, 3, 5, 5]
-    elif motive == "bowling_normal":
-        weights = [1, 1, 2, 3, 5, 4]
-    elif motive == "bowling_low":
-        weights = [1, 1, 2, 4, 5, 3]
-
-    else:
-        weights=[1,1,1,1,1,1]
-        
+    weights=motive_weights.get(motive,[1,1,1,1,1,1])
     return random.choices(number_choice,weights=weights)[0]
+
+def get_frequency_choice(history):
+    if len(history)<3:
+        return None
+    frequency={1:0,2:0,3:0,4:0,5:0,6:0}
+    for number in history:
+        frequency[number] +=1
+    return max(frequency,key=lambda x: frequency[x])
+
+def get_recency_choice(history):
+    if len(history)<5:
+        return None
+    last_5=history[-5:]
+    missing=[n for n in number_choice if n not in last_5]
+    if missing:
+       return random.choice(missing)
+    return None
+
+def get_bowling_choice(match, score, balls):
+    history = match.get("batting_history", [])
+    motive = get_motive(match, score, balls)
+
+    motive_w = list(motive_weights.get(motive, [1,1,1,1,1,1]))
+    freq_w = [1,1,1,1,1,1]
+    rec_w = [1,1,1,1,1,1]
+
+    freq_choice = get_frequency_choice(history)
+    if freq_choice:
+        freq_w[freq_choice - 1] = 10
+
+    if len(history) >= 5:
+        for n in history[-5:]:
+            rec_w[n-1] += 2
+
+    final_weights = [motive_w[i] + freq_w[i] + rec_w[i] for i in range(6)]
+    return random.choices(number_choice, weights=final_weights)[0]
+
+
+def get_batting_choice(match, score, balls):
+    history = match.get("bowling_history", [])
+    motive = get_motive(match, score, balls)
+
+    motive_w = list(motive_weights.get(motive, [1,1,1,1,1,1]))
+    freq_w = [1,1,1,1,1,1]
+    rec_w = [1,1,1,1,1,1]
+
+    freq_choice = get_frequency_choice(history)
+    if freq_choice:
+        freq_w[freq_choice - 1] = max(0, freq_w[freq_choice - 1] - 8)
+
+    if len(history) >= 5:
+        for n in history[-5:]:
+            rec_w[n-1] = max(0, rec_w[n-1] - 1)
+
+    final_weights = [motive_w[i] + freq_w[i] + rec_w[i] for i in range(6)]
+    final_weights = [max(0, w) for w in final_weights]
+    return random.choices(number_choice, weights=final_weights)[0]

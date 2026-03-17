@@ -1,6 +1,6 @@
 import random
 import time
-from .ai_brainlogic import get_motive,pick_number
+from .ai_brainlogic import get_motive,pick_number,get_bowling_choice,get_batting_choice
 
 
 random_commentary = [
@@ -166,19 +166,21 @@ def play_ball(match,score,balls):
 
     if match["batting"] == "player":
         batter_choice = get_player_choice(match["name"])
-        motive=get_motive(match,score,balls)
-        bowler_choice=pick_number(motive)
+        if isinstance(batter_choice,int):
+            match["batting_history"].append(batter_choice)
+
+        bowler_choice=get_bowling_choice(match,score,balls)
         print(f"🎯 Ball → {match['name']}: {batter_choice} | Computer: {bowler_choice}")
         if batter_choice == "penalty":
             print("💸 Penalty! -20 runs!")
             return "batting_penalty"
 
     else:
-        motive=get_motive(match,score,balls)
-
-        batter_choice=pick_number(motive)
+        batter_choice=get_batting_choice(match,score,balls)
 
         bowler_choice = get_player_choice(match["name"])
+        if isinstance(bowler_choice,int):
+            match["bowling_history"].append(bowler_choice)
 
         print(f"🎯 Ball → Computer: {batter_choice} | {match['name']}: {bowler_choice}")
         if bowler_choice == "penalty":
@@ -332,7 +334,10 @@ def super_over(match):
 
 def endless_mode(name):
     try:
-        match = {"name": name}
+        match = {"name": name,
+                 "batting_history":[],
+                 "bowling_history":[]
+    }
 
         decide_innings(match)
 
@@ -366,7 +371,10 @@ def limited_mode(name):
 
         total_balls = overs * 6
 
-        match = {"name": name}
+        match = {"name": name,
+                 "batting_history":[],
+                 "bowling_history":[]
+    }
 
         decide_innings(match)
 
