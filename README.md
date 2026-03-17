@@ -1,249 +1,253 @@
-# Python Login Game System
+# 🎮 Python Login Game System
 
-A modular command-line game platform written in Python that includes a full login system, session management, persistent player statistics, and multiple games.
+A modular command-line game platform built in Python.
 
-The project started as a simple CLI project and gradually evolved into a structured game system with AI-driven gameplay and persistent user data.
+Started as a simple CLI project → evolved into a structured system with:
+- Authentication system
+- Session management
+- Persistent user data
+- AI-driven gameplay
+
+---
+
+# 🚀 How to Run
+
+cd login_system  
+python main.py  
+
+⚠️ Only run main.py  
+Do NOT run internal files directly
+
+---
+
+# 📁 Project Structure
+
+login_system/  
+├── main.py  
+├── login_logic.py  
+├── file_handler.py  
+├── session_manager.py  
+├── rock_paper_scissor/  
+│   └── main.py  
+├── hand_cricket/  
+│   ├── main.py  
+│   ├── game_logic.py  
+│   └── ai_brain_logic.py  
+└── data/  
+
+---
+
+# 🔐 Authentication System
+
+- Account creation with validation  
+  - Username rules  
+  - Password strength  
+- Password hashing (no plain text storage)  
+- Login attempt limit  
+  - 3 wrong attempts → 5 minute lockout  
+- Auto-login via saved session  
+
+---
+
+# 🧠 Session Manager
+
+- Detects saved session on launch  
+- Automatically logs user in  
+- Logout clears session  
+- Prevents unauthorized access  
+
+---
+
+# 💾 File Handler
+
+- JSON-based storage  
+- Saves player statistics  
+- Persistent across sessions  
+- data/ folder is Git-ignored  
+
+---
+
+# ✊ Rock Paper Scissors
+
+## Modes
+
+- Endless Mode  
+  → unlimited rounds  
+  → exit anytime  
+
+- Limited Mode  
+  → fixed rounds (max 20)  
+
+- Ranked Mode  
+  → fixed 10 rounds  
+  → no early exit (anti-cheat)  
+
+## Stats
+
+- Wins  
+- Losses  
+- Draws  
+- Win Rate  
+
+---
+
+# 🏏 Hand Cricket
+
+## Core Rules
+
+- Both players choose numbers (1–6)  
+- Same number → OUT  
+- Otherwise → runs scored  
+
+---
+
+## Match Flow
+
+- Toss (Odd/Even)  
+- First Innings → set target  
+- Second Innings → chase target  
+- Tie → Super Over  
 
 ---
 
 ## Features
 
-- Login & User Authentication System
-- Persistent User Data Storage
-- Session Management
-- Multiple CLI Games
-- AI-Driven Hand Cricket Opponent
-- Player Statistics Tracking
-- Dynamic Commentary System
-- Reaction Timer with Penalty System
-- Super Over System for Tie Matches
+- Live scoreboard  
+- Target tracking  
+- Commentary system  
+- Reaction timer  
+- Match summary  
+- Persistent stats  
 
 ---
 
-## Project Architecture
+# ⏱ Reaction Timer System
 
-The project is divided into multiple modules to keep the system modular and scalable.
+- 3 seconds per move  
 
-project/
+If player is slow:
 
-login_system/
+- Batting → -20 runs  
+- Bowling → +20 runs to computer  
 
-authentication.py
-
-session_manager.py
-
-user_database.py
-
-file_handler/
-
-file_handler.py
-
-games/
-
-rock_paper_scissors.py
-
-hand_cricket/
-
-game_logic.py
-
-ai_brainlogic.py
-
-main.py
-
-README.md
+👉 Creates pressure → forces patterns  
 
 ---
 
-## Login System
+# 🔥 Super Over System
 
-The login system allows users to create accounts and securely access the game platform.
+- Each side plays 6 balls  
+- Highest score wins  
+- Tie → repeat  
 
-Features:
-
-- User Registration
-- User Login
-- Session Handling
-- Persistent Data Storage
-
-User data is saved using the file handler module so that progress and statistics remain stored between sessions.
+👉 No draws possible  
 
 ---
 
-## Session Manager
+# 🤖 AI Brain System
 
-The session manager tracks the currently logged-in user and manages the active session.
-
-Responsibilities:
-
-- Track logged-in users
-- Handle login/logout flow
-- Prevent unauthorized access to game systems
+AI is NOT random  
+Uses a 4-layer decision system  
 
 ---
 
-## File Handler
+## 🧩 Layer 1 — Motive Engine
 
-The file handler module is responsible for managing persistent storage.
+Decides strategy based on match situation  
 
-Responsibilities:
+### Batting:
 
-- Save user data
-- Load user profiles
-- Update game statistics
-- Maintain player records across sessions
+- Calculates required run rate  
+- Adjusts aggression dynamically  
 
----
+### Bowling:
 
-## Games Included
-
-### Rock Paper Scissors
-
-Classic CLI implementation of Rock-Paper-Scissors with statistics tracking.
-
-Features:
-
-- Player vs Computer gameplay
-- Win/Loss/Draw tracking
-- Win rate calculation
-- Persistent statistics
+- Reads player pressure  
+- Adjusts targeting  
 
 ---
 
-### Hand Cricket
+## 🎯 Strategies
 
-A fully featured command-line version of hand cricket with an intelligent AI opponent.
-
-Features:
-
-- Toss System (Odd/Even)
-- Batting and Bowling mechanics
-- Endless Mode
-- Limited Overs Mode
-- AI-driven opponent behavior
-- Match summary system
-- Player statistics tracking
+Freestyle → low pressure → random bias  
+Balanced → medium → middle numbers  
+Aggressive → high pressure → 4,5,6  
+Conservative → safe → low numbers  
+Desperate → extreme → heavy 5,6  
+Bowling High → player under pressure  
+Bowling Normal → balanced  
+Bowling Low → easy target  
 
 ---
 
-## AI Brain Logic
+## 📊 Layer 2 — Frequency Tracking
 
-The AI opponent adapts its playstyle depending on match situations.
+- Tracks player history  
+- Detects most used number  
 
-The AI calculates a **motive** based on:
+Behavior:
 
-- Current score
-- Target
-- Remaining balls
-- Required run rate
-- Match situation
-
-Possible motives include:
-
-- Freestyle
-- Balanced
-- Aggressive
-- Conservative
-- Desperate
-- Bowling High Pressure
-- Bowling Normal
-- Bowling Defensive
-
-Each motive uses **weighted probability** to select numbers, making the AI feel strategic rather than random.
+- Bowling → target it  
+- Batting → avoid it  
 
 ---
 
-## Dynamic Commentary System
+## 🔁 Layer 3 — Recency Tracking
 
-The game includes a dynamic commentary engine to improve gameplay experience.
-
-Different commentary is triggered based on events.
-
-Commentary categories include:
-
-- Random events
-- Four runs
-- Six runs
-- Player out
-
-Example commentary:
-
-Both players hiding their fingers carefully...
-
-Same fingers! OUT!
-
-Massive SIX from the batter!
-
-Commentary is randomly selected from predefined lists.
+- Tracks last 5 moves  
+- Missing numbers get higher probability  
 
 ---
 
-## Reaction Timer System
+## ⚙️ Layer 4 — Weighted Decision
 
-To simulate pressure, the player has **3 seconds** to enter a number during gameplay.
+Final Decision = Motive + Frequency + Recency  
 
-If the player exceeds the time limit:
-
-Batting Penalty
-
--20 runs deducted
-
-Bowling Penalty
-
-Computer receives +20 runs
-
-This adds reaction pressure and strategic gameplay.
+- Motive → base weights  
+- Frequency → strong signal (+10)  
+- Recency → fine tuning (+2)  
 
 ---
 
-## Super Over System
+## 🧠 Result
 
-If both teams score the same runs, a Super Over is triggered.
+- Early game → simple AI  
+- Late game → adaptive AI  
 
-Rules:
-
-Each side gets **6 balls**.
-
-The highest score wins.
-
-If tied again, another Super Over begins.
+👉 AI becomes harder over time  
 
 ---
 
-## Match Summary
+# 📈 Player Statistics
 
-After every match the system prints:
+- Matches played  
+- Wins  
+- Losses  
+- Win rate  
 
-- Toss result
-- First innings score
-- Second innings score
-- Match winner
-
-Statistics are then saved using the file handler system.
+👉 Persisted across sessions  
 
 ---
 
-## Future Improvements
+# 🚧 Future Plans
 
-Possible future improvements include:
-
-- Smarter adaptive AI
-- Difficulty levels
-- Leaderboards
-- Multiplayer mode
-- GUI interface
-- More games
+- Difficulty modes  
+- Persistent AI memory  
+- Leaderboard  
+- Advanced statistics  
+- More games  
 
 ---
 
-## Author
+# 👨‍💻 Author
 
-Ayush Tiwari
+Ayush Tiwari  
 
 GitHub:  
-https://github.com/ayushtiwari-dev-coder
+https://github.com/ayushtiwari-dev-coder  
 
 ---
 
-## License
+# 📜 License
 
-This project is open source and available under the MIT License.
+MIT License
