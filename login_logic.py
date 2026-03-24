@@ -1,5 +1,5 @@
 import time
-from file_handler import hashing_password
+from login_system.security import hashing_password
 from database.sql_handler import create_user,get_user,update_lock,update_name
 
 def password_attempt(username):
