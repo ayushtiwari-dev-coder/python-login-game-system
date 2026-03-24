@@ -1,15 +1,17 @@
 # built in
 import sys
 # PROJECT MODULES
-from file_handler import save_user,load_user,update_user
+from database.sql_handler import create_user,get_user,update_hand_cricket_stats,update_rps_stats
 from login_logic import create_account,login,setup_name
 from rock_paper_scissor.main import play_rps
 from session_manager import save_session,load_session,clear_session
 from hand_cricket.main import hand_cricket_dashboard
+'''
+     WORK IN PROGRESS(PROFILE STATS)
 
 def profile_stats(name, username):
 
-    user = load_user()
+
 
     print("\n" + "="*50)
     print("📁                PROFILE STATS")
@@ -59,7 +61,7 @@ def profile_stats(name, username):
 
     print("\n" + "="*50)
 
-    input("\nPress Enter to return to dashboard...")
+    input("\nPress Enter to return to dashboard...")'''
 
 def dashboard_player(name,username):
         
@@ -90,16 +92,7 @@ def dashboard_player(name,username):
                                 if result == "exit":
                                      break
                                 if result:
-                                     user=load_user()
-                                     user[username]["rps"]["matches"] +=1
-                                     if result == "wins":
-                                          user[username]["rps"]["wins"] +=1
-                                     elif result == "losses":
-                                          user[username]["rps"]["losses"] +=1
-                                     elif result == "draws":
-                                          user[username]["rps"]["draws"] +=1
-
-                                     update_user(user)                                
+                                     update_rps_stats(username,result)                                
 
                         elif option_chosen in ["2","hand cricket","cricket"]:
                             while True:
@@ -107,19 +100,12 @@ def dashboard_player(name,username):
                                  if result == "cancel_match":
                                       break
                                  if result:
-                                      user=load_user()
-                                      user[username]["hand_cricket"]["matches"] +=1
-                                      if result == "wins":
-                                          user[username]["hand_cricket"]["wins"] +=1
-                                      elif result == "losses":
-                                          user[username]["hand_cricket"]["losses"] +=1
-
-                                      update_user(user)                       
+                                      update_hand_cricket_stats(username,result)                       
                                       
 
 
-                        elif option_chosen in ["3","profile stats"]:
-                            profile_stats(name,username)
+                        elif option_chosen in ["3","profile stats(in progress)"]:
+                             print("Work in progress coming soon")
 
 
                         elif option_chosen in ["4","leaderboard"]:
@@ -143,9 +129,9 @@ def dashboard_player(name,username):
 
 username=load_session()
 if username:
-     user=load_user()
-     if username in user:
-        name=user[username]["name"]
+     user=get_user(username)
+     if user:
+        name=user["name"]
         dashboard_player(name,username)
 
 while True:
@@ -171,8 +157,8 @@ while True:
         print("🆕 Creating a new account...\n")
 
         username, password = create_account()
-        save_user(username, password)
         name = setup_name(username)
+        create_user(username,name,password)
         save_session(username)
         print("\n✅ Account created successfully!\n")
         dashboard_player(name,username)
@@ -182,6 +168,7 @@ while True:
         print("🔑 Login to your account\n")
 
         result = login()
+    
 
         if result:
              name,username=result

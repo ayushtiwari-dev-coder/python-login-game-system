@@ -1,32 +1,31 @@
 import time
-from file_handler import load_user
-from file_handler import update_user
 from file_handler import hashing_password
+from database.sql_handler import create_user,get_user,update_lock,update_name
 
 def password_attempt(username):
 
-    user = load_user()
+    user = get_user(username)
     attempts = 0
 
     while attempts < 3:
 
         password = input("enter your password:")
 
-        if user[username]["password"] == hashing_password(password):
+        if user["password"] == hashing_password(password):
             print("login successfully")
-            name = user[username]["name"]
+            name = user["name"]
             return name, username
 
         else:
             print("wrong password try again")
             attempts += 1
 
-    user[username]["lock_until"] = int(time.time()) + 300
-    update_user(user)
+    lock_until=int(time.time())+300
+    update_lock(username,lock_until)
     return None
 
 def setup_name(username):
-                        user=load_user()
+                        user=get_user(username)
                         
                         print("\n" + "="*40)
                         print("👋 PROFILE SETUP")
@@ -49,9 +48,7 @@ def setup_name(username):
                                  error=True
 
                             if error==False:
-                                     
-                                user[username]["name"]=name
-                                update_user(user)
+                                update_name(username,name)
                                 print(f"\n✅ Thanks {name}! Your profile is now set.\n")
                                 return name
 
@@ -59,7 +56,6 @@ def setup_name(username):
 
 def create_account():
 
-    user = load_user()
 
     while True:
 
@@ -88,7 +84,7 @@ def create_account():
             print("username can only contain letters, numbers, '_' and '-'")
             error = True
 
-        if username in user:
+        if get_user(username):
             print("username already exist try another")
             error = True
 
@@ -142,17 +138,16 @@ def create_account():
                 return username, password
 
 def login():
-    user=load_user()
-
     while True:
 
         username = input("enter your username:")
+        user=get_user(username)
 
-        if username not in user:
+        if not user:
             print("username does not exist,try again")
             continue
 
-        lock_until = user[username]["lock_until"]
+        lock_until = user["lock_until"]
         current_time = int(time.time())
 
         if(current_time < lock_until):
