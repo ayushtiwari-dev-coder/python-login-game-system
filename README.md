@@ -1,250 +1,272 @@
 # 🎮 Python Login Game System
 
-A modular command-line game platform built in Python.
+A modular command-line game platform built in **Python**.
 
 Started as a simple CLI project → evolved into a structured system with:
+
 - Authentication system
 - Session management
-- Persistent user data
+- SQL database storage
 - AI-driven gameplay
 
 ---
 
 # 🚀 How to Run
 
-cd login_system  
-python main.py  
+```bash
+cd login_system
+python main.py
+```
 
-⚠️ Only run main.py  
-Do NOT run internal files directly
+⚠️ Only run **main.py**  
+Do **NOT** run internal files directly.
 
 ---
 
 # 📁 Project Structure
 
-login_system/  
-├── main.py  
-├── login_logic.py  
-├── file_handler.py  
-├── session_manager.py  
-├── rock_paper_scissor/  
-│   └── main.py  
-├── hand_cricket/  
-│   ├── main.py  
-│   ├── game_logic.py  
-│   └── ai_brain_logic.py  
-└── data/  
+```
+login_system/
+├── main.py
+├── login_logic.py
+├── security.py
+├── session_manager.py
+├── database/
+│   ├── connection.py
+│   └── sqlhandler.py
+├── rock_paper_scissor/
+│   └── main.py
+├── hand_cricket/
+│   ├── main.py
+│   ├── game_logic.py
+│   └── ai_brain_logic.py
+└── data/
+```
 
 ---
 
 # 🔐 Authentication System
 
-- Account creation with validation  
-  - Username rules  
-  - Password strength  
-- Password hashing (no plain text storage)  
-- Login attempt limit  
-  - 3 wrong attempts → 5 minute lockout  
-- Auto-login via saved session  
+Features:
+
+- Account creation with validation
+- Username rules
+- Password strength checking
+- Password hashing (SHA256)
+- Login attempt limit
+- **3 wrong attempts → 5 minute lockout**
+- Auto-login via saved session
 
 ---
 
 # 🧠 Session Manager
 
-- Detects saved session on launch  
-- Automatically logs user in  
-- Logout clears session  
-- Prevents unauthorized access  
+- Detects saved session on launch
+- Automatically logs user in
+- Logout clears session
+- Prevents unauthorized access
 
 ---
 
-# 💾 File Handler
+# 💾 Database System
 
-- JSON-based storage  
-- Saves player statistics  
-- Persistent across sessions  
-- data/ folder is Git-ignored  
+User data is now stored using **MySQL** instead of JSON.
+
+Features:
+
+- SQL tables for users and game stats
+- Persistent player statistics
+- Secure database connection using environment variables
+- `.env` file for protecting database credentials
 
 ---
 
 # ✊ Rock Paper Scissors
 
-## Modes
+### Modes
 
-- Endless Mode  
-  → unlimited rounds  
-  → exit anytime  
+**Endless Mode**
 
-- Limited Mode  
-  → fixed rounds (max 20)  
+- unlimited rounds
+- exit anytime
 
-- Ranked Mode  
-  → fixed 10 rounds  
-  → no early exit (anti-cheat)  
+**Limited Mode**
 
-## Stats
+- fixed rounds (max 20)
 
-- Wins  
-- Losses  
-- Draws  
-- Win Rate  
+**Ranked Mode**
+
+- fixed 10 rounds
+- no early exit (anti-cheat)
+
+### Stats
+
+- Wins
+- Losses
+- Draws
+- Win Rate
 
 ---
 
 # 🏏 Hand Cricket
 
-## Core Rules
+### Core Rules
 
-- Both players choose numbers (1–6)  
-- Same number → OUT  
-- Otherwise → runs scored  
+Both players choose numbers **1–6**
 
----
+- Same number → **OUT**
+- Otherwise → runs scored
 
-## Match Flow
+### Match Flow
 
-- Toss (Odd/Even)  
-- First Innings → set target  
-- Second Innings → chase target  
-- Tie → Super Over  
+1. Toss (Odd/Even)
+2. First Innings → set target
+3. Second Innings → chase target
+4. Tie → **Super Over**
 
----
+### Features
 
-## Features
-
-- Live scoreboard  
-- Target tracking  
-- Commentary system  
-- Reaction timer  
-- Match summary  
-- Persistent stats  
+- Live scoreboard
+- Target tracking
+- Commentary system
+- Reaction timer
+- Match summary
+- Persistent stats
 
 ---
 
 # ⏱ Reaction Timer System
 
-- 3 seconds per move  
+Players must respond within **3 seconds**.
 
 If player is slow:
 
-- Batting → -20 runs  
-- Bowling → +20 runs to computer  
+- **Batting → -20 runs**
+- **Bowling → +20 runs to computer**
 
-👉 Creates pressure → forces patterns  
+👉 Creates pressure and forces decision patterns.
 
 ---
 
 # 🔥 Super Over System
 
-- Each side plays 6 balls  
-- Highest score wins  
-- Tie → repeat  
+- Each side plays **6 balls**
+- Highest score wins
+- Tie → repeat
 
-👉 No draws possible  
+👉 No draws possible.
 
 ---
 
 # 🤖 AI Brain System
 
-AI is NOT random  
-Uses a 4-layer decision system  
+The AI is **not random**.  
+It uses a **4-layer decision system**.
 
 ---
 
 ## 🧩 Layer 1 — Motive Engine
 
-Decides strategy based on match situation  
+Determines strategy based on match situation.
 
-### Batting:
+### Batting
 
-- Calculates required run rate  
-- Adjusts aggression dynamically  
+- Calculates required run rate
+- Adjusts aggression dynamically
 
-### Bowling:
+### Bowling
 
-- Reads player pressure  
-- Adjusts targeting  
+- Reads player pressure
+- Adjusts targeting
 
 ---
 
 ## 🎯 Strategies
 
-Freestyle → low pressure → random bias  
-Balanced → medium → middle numbers  
-Aggressive → high pressure → 4,5,6  
-Conservative → safe → low numbers  
-Desperate → extreme → heavy 5,6  
-Bowling High → player under pressure  
-Bowling Normal → balanced  
-Bowling Low → easy target  
+- **Freestyle** → low pressure → random bias
+- **Balanced** → medium pressure → middle numbers
+- **Aggressive** → high pressure → 4,5,6
+- **Conservative** → safe → low numbers
+- **Desperate** → extreme → heavy 5,6
+- **Bowling High** → player under pressure
+- **Bowling Normal** → balanced
+- **Bowling Low** → easy target
 
 ---
 
 ## 📊 Layer 2 — Frequency Tracking
 
-- Tracks player history  
-- Detects most used number  
+Tracks player history.
+
+Detects the **most used number**.
 
 Behavior:
 
-- Bowling → target it  
-- Batting → avoid it  
+- Bowling → target it
+- Batting → avoid it
 
 ---
 
 ## 🔁 Layer 3 — Recency Tracking
 
-- Tracks last 5 moves  
-- Missing numbers get higher probability  
+Tracks last **5 moves**.
+
+Numbers not used recently get **higher probability**.
 
 ---
 
 ## ⚙️ Layer 4 — Weighted Decision
 
-Final Decision = Motive + Frequency + Recency  
+Final Decision =
 
-- Motive → base weights  
-- Frequency → strong signal (+10)  
-- Recency → fine tuning (+2)  
+```
+Motive + Frequency + Recency
+```
+
+- Motive → base weights
+- Frequency → strong signal (+10)
+- Recency → fine tuning (+2)
 
 ---
 
-## 🧠 Result
+# 🧠 AI Result
 
-- Early game → simple AI  
-- Late game → adaptive AI  
+- Early game → simple AI
+- Late game → adaptive AI
 
-👉 AI becomes harder over time  
+👉 AI becomes harder over time.
 
 ---
 
 # 📈 Player Statistics
 
-- Matches played  
-- Wins  
-- Losses  
-- Win rate  
+Tracks:
 
-👉 Persisted across sessions  
+- Matches played
+- Wins
+- Losses
+- Win rate
+
+Stored in the **database for persistence**.
 
 ---
 
 # 🚧 Future Plans
 
-- Difficulty modes  
-- Persistent AI memory  
-- Leaderboard  
-- Advanced statistics  
-- More games  
+- Difficulty modes
+- Persistent AI memory
+- Leaderboard system
+- Advanced statistics
+- More games
 
 ---
 
 # 👨‍💻 Author
 
-Ayush Tiwari  
+**Ayush Tiwari**
 
 GitHub:  
-https://github.com/ayushtiwari-dev-coder  
+https://github.com/ayushtiwari-dev-coder
 
 ---
 
