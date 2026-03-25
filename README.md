@@ -8,6 +8,8 @@ Started as a simple CLI project → evolved into a structured system with:
 - Session management
 - SQL database storage
 - AI-driven gameplay
+- Player statistics
+- Global leaderboard system
 
 ---
 
@@ -70,14 +72,62 @@ Features:
 
 # 💾 Database System
 
-User data is now stored using **MySQL** instead of JSON.
+User data is stored using **MySQL** instead of JSON.
 
 Features:
 
-- SQL tables for users and game stats
+- SQL tables for users and game statistics
 - Persistent player statistics
 - Secure database connection using environment variables
-- `.env` file for protecting database credentials
+- `.env` file protects database credentials
+
+Database tables:
+
+```
+users
+rps_stats
+hand_cricket_stats
+```
+
+---
+
+# 📊 Profile Statistics
+
+Displays player performance across games.
+
+### Rock Paper Scissors
+
+- Matches Played
+- Wins
+- Losses
+- Draws
+- Win Rate
+
+### Hand Cricket
+
+- Matches Played
+- Wins
+- Losses
+- Win Rate
+
+All statistics are calculated **directly from SQL queries**.
+
+---
+
+# 🏆 Leaderboard System
+
+A global leaderboard system.
+
+Rules:
+
+- Minimum **15 matches required**
+- Sorted by **Win Rate**
+- Displays **Top 5 players**
+
+Leaderboards available for:
+
+- Rock Paper Scissors
+- Hand Cricket
 
 ---
 
@@ -251,13 +301,21 @@ Stored in the **database for persistence**.
 
 ---
 
-# 🚧 Future Plans
+# 🤖 AI Chatbot (Experimental)
 
-- Difficulty modes
-- Persistent AI memory
-- Leaderboard system
-- Advanced statistics
-- More games
+Planned chatbot system based on **rule-based AI**.
+
+Design:
+
+- Detect keywords in user sentences
+- Match patterns to predefined responses
+- Use a **fallback brain system** if no rule matches
+
+Goal:
+
+```
+Rule-based AI + reasoning fallback
+```
 
 ---
 

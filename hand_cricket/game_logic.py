@@ -192,6 +192,7 @@ def play_ball(match,score,balls):
         print(f"💥 OUT! {match['name'] if match['batting'] == 'player' else 'Computer'} is dismissed!\n")
         return "out"
     
+    
     if batter_choice==4:
         print(random.choice(four_commentary))
 
@@ -345,6 +346,7 @@ def endless_mode(name):
 
         match["batting"], match["bowling"] = match["bowling"], match["batting"]
         match["target"] = match["first_score"] + 1
+        input("press enter to continue: ")
 
         match["second_score"], match["second_balls"] = play_innings(match, "SECOND INNINGS")
 
@@ -384,6 +386,7 @@ def limited_mode(name):
 
         match["batting"], match["bowling"] = match["bowling"], match["batting"]
         match["target"] = match["first_score"] + 1
+        input("press enter to continue: ")
 
         match["second_score"], match["second_balls"] = play_innings(
             match, "SECOND INNINGS (LIMITED MODE)", total_balls=total_balls

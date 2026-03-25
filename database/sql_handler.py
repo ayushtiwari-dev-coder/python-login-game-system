@@ -181,3 +181,64 @@ def update_name(username, name):
     db.commit()
     cursor.close()
     db.close()
+
+def get_profile_stats(username):
+    db=get_connection()
+    cursor=db.cursor(dictionary=True)
+
+    rps_query="""
+    SELECT wins,losses,matches,draws
+    FROM rps_stats
+    WHERE username=%s
+"""
+    hc_query="""
+    SELECT wins,losses,matches
+    FROM hand_cricket_stats
+    WHERE username=%s
+"""
+
+    cursor.execute(rps_query,(username,))
+    rps_stats=cursor.fetchone()
+
+    cursor.execute(hc_query,(username,))
+    hc_stats=cursor.fetchone()
+
+    cursor.close()
+    db.close()
+
+    return {
+        "rps":rps_stats,
+        "hand_cricket":hc_stats
+    }
+def get_leaderboard(game):
+
+    db = get_connection()
+    cursor = db.cursor(dictionary=True)
+
+    if game == "rps":
+        query = """
+        SELECT username, wins, losses, draws, matches,
+               (wins * 100.0 / matches) AS win_rate
+        FROM rps_stats
+        WHERE matches >= 15
+        ORDER BY win_rate DESC
+        LIMIT 5
+        """
+
+    elif game == "hand_cricket":
+        query = """
+        SELECT username, wins, losses, matches,
+               (wins * 100.0 / matches) AS win_rate
+        FROM hand_cricket_stats
+        WHERE matches >= 15
+        ORDER BY win_rate DESC
+        LIMIT 5
+        """
+
+    cursor.execute(query)
+    result = cursor.fetchall()
+
+    cursor.close()
+    db.close()
+
+    return result
