@@ -2,7 +2,7 @@ import random
 
 def play_rps(name):
 
-    # Game rules
+    
     beats = {
         "rock": "scissors",
         "paper": "rock",
@@ -103,6 +103,7 @@ def play_rps(name):
 
             player = get_player_choice()
 
+
             if player in ["rock", "paper", "scissors"]:
 
                 computer = random.choice(moves)
@@ -119,11 +120,12 @@ def play_rps(name):
 
             elif player in ["stop", "exit"]:
 
-                result = announce_winner(name, player_score, computer_score)
+                announce_winner(name, player_score, computer_score)
 
                 print(f"Which mode next, {name}?")
+                return None
 
-                return result
+                
 
 
     def limited_mode(name, rounds):
@@ -154,7 +156,39 @@ def play_rps(name):
 
             print_scoreboard(name, player_score, computer_score)
 
-        result = announce_winner(name, player_score, computer_score)
+        announce_winner(name, player_score, computer_score)
+
+        return None
+    
+    def ranked_mode(name):
+
+        print("\nType 'exit' or 'stop' anytime to return to dashboard")
+
+        player_score, computer_score = 0, 0
+        rounds=10
+        for current_round in range(1,rounds+1):
+
+            print(f"\n⚔️ Round {current_round} – Fight!\n")
+
+            player = get_player_choice()
+
+            if player in ["stop", "exit"]:
+                print("Game stopped early")
+                return None
+
+            computer = random.choice(moves)
+
+            print(f"🤖 Computer chose: {computer.upper()}")
+
+            result = rules(player, computer)
+
+            player_score, computer_score = update_score(
+                result, player_score, computer_score, name
+            )
+
+            print_scoreboard(name, player_score, computer_score)
+
+        result=announce_winner(name, player_score, computer_score)
 
         return result
 
@@ -166,17 +200,19 @@ def play_rps(name):
 
     while True:
 
-        print("\n🎮 Choose Game Mode:")
-        print("1️⃣ Endless Mode")
-        print("2️⃣ Limited Mode")
-        print("3️⃣ Exit\n")
+        print("1️⃣ Endless Mode (stats not saved)")
+        print("2️⃣ Limited Mode (stats not saved)")
+        print("3️⃣ Ranked Mode")
+        print("4️⃣ Exit\n")
 
-        mode = input("Enter 1 or 2 or 3: ").lower()
+        mode = input("Enter 1 or 2 or 3 or 4: ").lower().strip()
 
         if mode in ["1", "endless", "e", "en"]:
 
-            result=endless_mode(name)
-            return result
+            endless_mode(name)
+            
+            break
+            
 
 
         elif mode in ["2", "limited", "limit", "li"]:
@@ -185,15 +221,18 @@ def play_rps(name):
 
                 rounds = get_rounds()
 
-                result = limited_mode(name, rounds)
+                limited_mode(name, rounds)
+                break
+                
+        elif mode in ["3","ranked","ranked_mode"]:
+            result=ranked_mode(name)
+            if result==None:
+                break
+            return result
 
-                if result is None:
-                    break
-
-                return result
 
 
-        elif mode in ["3", "exit", "exi", "ex"]:
+        elif mode in ["4", "exit", "exi", "ex"]:
 
             print("\n🎮 Thanks for playing! See you again!\n")
 

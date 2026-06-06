@@ -1,123 +1,333 @@
-# Terminal Login Game System 🎮
+# 🎮 Python Login Game System
 
-A modular Python terminal application that combines a **login system, session management, mini-games, and player statistics tracking**.
+A modular command-line game platform built in **Python**.
 
-This project demonstrates how to build a **backend-style system architecture in Python** using modules, file handling, and structured program flow.
+Started as a simple CLI project → evolved into a structured system with:
 
----
-
-# Features
-
-## 🔐 Authentication System
-- Create account
-- Login system
-- Password hashing
-- Protection against repeated wrong password attempts
+- Authentication system
+- Session management
+- SQL database storage
+- AI-driven gameplay
+- Player statistics
+- Global leaderboard system
 
 ---
 
-## 👤 Session System
-- Automatically logs the user in if a session exists
-- Logout clears the saved session
-- Persistent session stored locally
+# 🚀 How to Run
+
+```bash
+cd login_system
+python main.py
+```
+
+⚠️ Only run **main.py**  
+Do **NOT** run internal files directly.
 
 ---
 
-## 🎮 Game System
+# 📁 Project Structure
+
+```
+login_system/
+├── main.py
+├── login_logic.py
+├── security.py
+├── session_manager.py
+├── database/
+│   ├── connection.py
+│   └── sqlhandler.py
+├── rock_paper_scissor/
+│   └── main.py
+├── hand_cricket/
+│   ├── main.py
+│   ├── game_logic.py
+│   └── ai_brain_logic.py
+└── data/
+```
+
+---
+
+# 🔐 Authentication System
+
+Features:
+
+- Account creation with validation
+- Username rules
+- Password strength checking
+- Password hashing (SHA256)
+- Login attempt limit
+- **3 wrong attempts → 5 minute lockout**
+- Auto-login via saved session
+
+---
+
+# 🧠 Session Manager
+
+- Detects saved session on launch
+- Automatically logs user in
+- Logout clears session
+- Prevents unauthorized access
+
+---
+
+# 💾 Database System
+
+User data is stored using **MySQL** instead of JSON.
+
+Features:
+
+- SQL tables for users and game statistics
+- Persistent player statistics
+- Secure database connection using environment variables
+- `.env` file protects database credentials
+
+Database tables:
+
+```
+users
+rps_stats
+hand_cricket_stats
+```
+
+---
+
+# 📊 Profile Statistics
+
+Displays player performance across games.
 
 ### Rock Paper Scissors
-Includes two modes:
 
-**Endless Mode**
-- Play unlimited rounds
-- Stop anytime to finish the match
-
-**Limited Mode**
-- Play a fixed number of rounds
-- Winner determined after all rounds
-
-Game results automatically update player statistics.
-
----
-
-## 📊 Profile Stats Dashboard
-Displays player statistics including:
-
-- Total Matches Played
+- Matches Played
 - Wins
 - Losses
 - Draws
-- Win Rate (%)
+- Win Rate
+
+### Hand Cricket
+
+- Matches Played
+- Wins
+- Losses
+- Win Rate
+
+All statistics are calculated **directly from SQL queries**.
 
 ---
 
-## 🧩 Modular Architecture
+# 🏆 Leaderboard System
 
-The project is structured using multiple modules to separate responsibilities.
+A global leaderboard system.
 
-Each module handles a specific responsibility:
+Rules:
 
-| Module | Purpose |
-|------|------|
-| main.py | Application entry point |
-| login_logic.py | Account creation and login validation |
-| file_handler.py | User data storage |
-| session_manager.py | Session persistence |
-| rock_paper_scissor | Game engine |
+- Minimum **15 matches required**
+- Sorted by **Win Rate**
+- Displays **Top 5 players**
 
----
+Leaderboards available for:
 
-# How to Run the Program
-
-⚠️ Important:
-
-Run the program **from the `login_system` folder**, not from `python_projects`.
+- Rock Paper Scissors
+- Hand Cricket
 
 ---
 
-## Step 1 — Navigate to the project folder
+# ✊ Rock Paper Scissors
+
+### Modes
+
+**Endless Mode**
+
+- unlimited rounds
+- exit anytime
+
+**Limited Mode**
+
+- fixed rounds (max 20)
+
+**Ranked Mode**
+
+- fixed 10 rounds
+- no early exit (anti-cheat)
+
+### Stats
+
+- Wins
+- Losses
+- Draws
+- Win Rate
 
 ---
 
-## Step 2 — Run the application
+# 🏏 Hand Cricket
+
+### Core Rules
+
+Both players choose numbers **1–6**
+
+- Same number → **OUT**
+- Otherwise → runs scored
+
+### Match Flow
+
+1. Toss (Odd/Even)
+2. First Innings → set target
+3. Second Innings → chase target
+4. Tie → **Super Over**
+
+### Features
+
+- Live scoreboard
+- Target tracking
+- Commentary system
+- Reaction timer
+- Match summary
+- Persistent stats
 
 ---
 
-# Data Storage
+# ⏱ Reaction Timer System
 
-User data and session information are stored locally inside the `data` folder.
+Players must respond within **3 seconds**.
 
-These files store:
+If player is slow:
 
-- User credentials
-- Player statistics
-- Active session information
+- **Batting → -20 runs**
+- **Bowling → +20 runs to computer**
 
-The `data` folder is ignored in Git to prevent uploading personal data.
-
----
-
-# Future Improvements
-
-Planned features include:
-
-- Hand Cricket game
-- Leaderboard system
-- Additional statistics
-- More mini-games
-- Improved UI formatting
+👉 Creates pressure and forces decision patterns.
 
 ---
 
-# Technologies Used
+# 🔥 Super Over System
 
-- Python
-- JSON file storage
-- Modular programming
-- Terminal-based interface
+- Each side plays **6 balls**
+- Highest score wins
+- Tie → repeat
+
+👉 No draws possible.
 
 ---
 
-# License
+# 🤖 AI Brain System
+
+The AI is **not random**.  
+It uses a **4-layer decision system**.
+
+---
+
+## 🧩 Layer 1 — Motive Engine
+
+Determines strategy based on match situation.
+
+### Batting
+
+- Calculates required run rate
+- Adjusts aggression dynamically
+
+### Bowling
+
+- Reads player pressure
+- Adjusts targeting
+
+---
+
+## 🎯 Strategies
+
+- **Freestyle** → low pressure → random bias
+- **Balanced** → medium pressure → middle numbers
+- **Aggressive** → high pressure → 4,5,6
+- **Conservative** → safe → low numbers
+- **Desperate** → extreme → heavy 5,6
+- **Bowling High** → player under pressure
+- **Bowling Normal** → balanced
+- **Bowling Low** → easy target
+
+---
+
+## 📊 Layer 2 — Frequency Tracking
+
+Tracks player history.
+
+Detects the **most used number**.
+
+Behavior:
+
+- Bowling → target it
+- Batting → avoid it
+
+---
+
+## 🔁 Layer 3 — Recency Tracking
+
+Tracks last **5 moves**.
+
+Numbers not used recently get **higher probability**.
+
+---
+
+## ⚙️ Layer 4 — Weighted Decision
+
+Final Decision =
+
+```
+Motive + Frequency + Recency
+```
+
+- Motive → base weights
+- Frequency → strong signal (+10)
+- Recency → fine tuning (+2)
+
+---
+
+# 🧠 AI Result
+
+- Early game → simple AI
+- Late game → adaptive AI
+
+👉 AI becomes harder over time.
+
+---
+
+# 📈 Player Statistics
+
+Tracks:
+
+- Matches played
+- Wins
+- Losses
+- Win rate
+
+Stored in the **database for persistence**.
+
+---
+
+# 🤖 AI Chatbot (Experimental)
+
+Planned chatbot system based on **rule-based AI**.
+
+Design:
+
+- Detect keywords in user sentences
+- Match patterns to predefined responses
+- Use a **fallback brain system** if no rule matches
+
+Goal:
+
+```
+Rule-based AI + reasoning fallback
+```
+
+---
+
+# 👨‍💻 Author
+
+**Ayush Tiwari**
+
+GitHub:  
+https://github.com/ayushtiwari-dev-coder
+
+---
+
+# 📜 License
 
 MIT License

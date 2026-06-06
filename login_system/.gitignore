@@ -211,3 +211,6 @@ __pycache__/
 
 # Ignore local data files
 data/
+.env
+.vscode/
+__pycache__/

@@ -18,7 +18,4 @@ def load_session():
 
 def clear_session():
     with open("login_system/data/session_user.txt", "w") as f:
-        f.write("")   
-        
-
-    
+        f.write("") 

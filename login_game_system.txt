@@ -1,0 +1,1560 @@
+
+
+############################################################
+ LOCATION: login_system\login_logic.py
+############################################################
+
+import time
+from security import hashing_password
+from database.sql_handler import create_user,get_user,update_lock,update_name
+
+def password_attempt(username):
+
+    user = get_user(username)
+    attempts = 0
+
+    while attempts < 3:
+
+        password = input("enter your password:")
+
+        if user["password"] == hashing_password(password):
+            print("login successfully")
+            name = user["name"]
+            return name, username
+
+        else:
+            print("wrong password try again")
+            attempts += 1
+
+    lock_until=int(time.time())+300
+    update_lock(username,lock_until)
+    return None
+
+def setup_name(username):
+                        user=get_user(username)
+                        
+                        print("\n" + "="*40)
+                        print("👋 PROFILE SETUP")
+                        print("="*40)
+                        print("\nWelcome! Let's personalize your experience.\n")
+                        print("To make your experience better,")
+                        print("we would like to know your name.")
+                        print("This will only be asked once.\n")
+                        while True: 
+                            name = input("👤 Enter your name: ").title().strip()
+                            error=False
+                            if name=="":
+                                 print("name cannot be empty")
+                                 error=True
+                            if len(name)>25:
+                                 print("Name is to long")
+                                 error=True
+                            if not name.replace(" ","").isalnum():
+                                 print("name should only contain alphabet and number")
+                                 error=True
+
+                            if error==False:
+                                update_name(username,name)
+                                print(f"\n✅ Thanks {name}! Your profile is now set.\n")
+                                return name
+
+                     
+
+def create_account():
+
+
+    while True:
+
+        username = input("enter username: ").strip().lower()
+
+        # username validation
+        error = False
+
+        if username == "":
+            print("username cannot be empty")
+            error = True
+
+        if " " in username:
+            print("username cannot contain spaces")
+            error = True
+
+        if len(username) > 20:
+            print("username too long (max 20 characters)")
+            error = True
+
+        if username.replace("_","").replace("-","") == "":
+            print("username must contain letters or numbers")
+            error = True
+
+        if not username.replace("_","").replace("-","").isalnum():
+            print("username can only contain letters, numbers, '_' and '-'")
+            error = True
+
+        if get_user(username):
+            print("username already exist try another")
+            error = True
+
+        if error:
+            print()
+            continue
+
+        print("username is available")
+
+        print("NOTE:")
+        print("password must have:")
+        print("1. At least 8 character")
+        print("2. one UPPER CASE letter")
+        print("3. atleast one number")
+        print("4. one special character")
+        print("5. no spaces")
+
+        # PASSWORD VALIDATION
+        while True:
+
+            password = input("enter password:")
+            error = False
+
+            if(len(password) < 8):
+                print("password is less than 8 character")
+                error = True
+
+            if(len(password)>32):
+                 print("password is to long (max 32 characters)")
+                 error=True
+
+            if not any(char.isupper() for char in password):
+                print("password must have one uppercase")
+                error = True
+
+            if not any(char.isdigit() for char in password):
+                print("password must contain a number")
+                error = True
+
+            if not any(not char.isalnum() for char in password):
+                print("ATLEAST one special character")
+                error = True
+
+            if " " in password:
+                print("There should be no spaces")
+                error = True
+
+            if error == False:
+                print("password is ready")
+                password = hashing_password(password)
+                return username, password
+
+def login():
+    while True:
+
+        username = input("enter your username:")
+        user=get_user(username)
+
+        if not user:
+            print("username does not exist,try again")
+            continue
+
+        lock_until = user["lock_until"]
+        current_time = int(time.time())
+
+        if(current_time < lock_until):
+            print("account is locked")
+            print("lock time:", lock_until - current_time)
+            continue
+        else:
+            break
+
+    return password_attempt(username)
+
+############################################################
+ LOCATION: login_system\main.py
+############################################################
+
+
+import sys
+from database.sql_handler import create_user,get_user,update_hand_cricket_stats,update_rps_stats,get_profile_stats,get_leaderboard
+from login_logic import create_account,login,setup_name
+from rock_paper_scissor.main import play_rps
+from session_manager import save_session,load_session,clear_session
+from hand_cricket.main import hand_cricket_dashboard
+
+
+def print_leaderboard(data):
+
+    print("\n🏆 Leaderboard")
+
+    for player in data:
+        print(
+            f"{player['username']} | "
+            f"Wins: {player['wins']} | "
+            f"Matches: {player['matches']} | "
+            f"Win Rate: {player['win_rate']:.2f}%"
+        )
+
+
+def profile_stats(name, username):
+
+    stats = get_profile_stats(username)
+
+    rps = stats["rps"]
+    hc = stats["hand_cricket"]
+
+    print("\n" + "="*50)
+    print("📁                PROFILE STATS")
+    print("="*50)
+
+    print(f"\n👤 Player : {name}\n")
+
+    rps_matches = rps["matches"]
+    rps_wins = rps["wins"]
+    rps_losses = rps["losses"]
+    rps_draws = rps["draws"]
+
+    rps_win_rate = (rps_wins / rps_matches * 100) if rps_matches else 0
+
+    print("🪨 ROCK PAPER SCISSORS")
+    print("-"*40)
+
+    print(f"🎮 Matches Played : {rps_matches}")
+    print(f"🏆 Wins           : {rps_wins}")
+    print(f"💀 Losses         : {rps_losses}")
+    print(f"🤝 Draws          : {rps_draws}")
+    print(f"📈 Win Rate       : {rps_win_rate:.2f}%")
+
+    print("\n" + "-"*50)
+
+    hc_matches = hc["matches"]
+    hc_wins = hc["wins"]
+    hc_losses = hc["losses"]
+
+    hc_win_rate = (hc_wins / hc_matches * 100) if hc_matches else 0
+
+    print("\n🏏 HAND CRICKET")
+    print("-"*40)
+
+    print(f"🎮 Matches Played : {hc_matches}")
+    print(f"🏆 Wins           : {hc_wins}")
+    print(f"💀 Losses         : {hc_losses}")
+    print(f"📈 Win Rate       : {hc_win_rate:.2f}%")
+
+    print("\n" + "="*50)
+
+    input("\nPress Enter to return to dashboard...")
+
+
+
+def dashboard_player(name,username):
+        
+        while True:
+                    
+                        print("\n" + "="*45)
+                        print("🎮  USER DASHBOARD")
+                        print("="*45)
+
+                        print(f"\n👋 Welcome back, {name}!\n")
+
+                        print("Choose an option:\n")
+
+                        print("1️⃣  🪨 Rock Paper Scissors")
+                        print("2️⃣  🏏 Hand Cricket ")
+                        print("3️⃣  📁 Profile Stats")
+                        print("4️⃣  📊 Leaderboard")
+                        print("5️⃣  🔓 Logout")
+                        print("6️⃣  ❌ Exit Application")
+
+                        print("\n" + "-"*45)
+
+                        option_chosen=input("enter what u want to do: ").lower().strip()
+
+                        if option_chosen in ["1","rock paper scissor","rock paper","rock"]:
+                            while True:
+                                result=play_rps(name)
+                                if result == "exit":
+                                     break
+                                if result:
+                                     update_rps_stats(username,result)                                
+
+                        elif option_chosen in ["2","hand cricket","cricket"]:
+                            while True:
+                                 result=hand_cricket_dashboard(name)
+                                 if result == "cancel_match":
+                                      break
+                                 if result:
+                                      update_hand_cricket_stats(username,result)                       
+                                      
+
+
+                        elif option_chosen in ["3","profile stats"]:
+                             profile_stats(name,username)
+
+
+                        elif option_chosen in ["4","leaderboard"]:
+                             while True:
+                                  print("\n Leaderboard")
+                                  print("1. rock paper scissors")
+                                  print("2. hand cricket")
+                                  print("3.back")
+                                  choice=input("choose leaderboard: ").strip().lower()
+                                  if choice in ["1","rps","rock paper scissors"]:
+                                       data=get_leaderboard("rps")
+                                       print_leaderboard(data)
+
+                                  elif choice in ["2","hc","hand cricket"]:
+                                       data=get_leaderboard("hand_cricket")
+                                       print_leaderboard(data)
+
+                                  elif choice in ["3","exit"]:
+                                       break
+                                  else:
+                                       print("invalid input")
+
+                        elif option_chosen in ["5","logout"]:
+                            clear_session()
+                            print("\n🔓 Logging out...")
+                            print("Returning to main menu...\n")
+                            break
+
+
+                        elif option_chosen in ["6","exit","exit application"]:
+                            print("\n👋 Closing application...")
+                            sys.exit()
+
+
+                        else:
+                            print("invalid input")
+
+username=load_session()
+if username:
+     user=get_user(username)
+     if user:
+        name=user["name"]
+        dashboard_player(name,username)
+
+while True:
+
+    print("\n" + "="*45)
+    print("🔐        LOGIN SYSTEM        🔐")
+    print("="*45)
+
+    print("\n📋 MAIN MENU\n")
+
+    print("1️⃣   Create Account")
+    print("2️⃣   Login")
+    print("3️⃣   Exit")
+
+    print("\n" + "-"*45)
+
+    choice = input("👉 Enter your choice: ").lower().strip()
+
+    print()
+
+    if choice in ["1", "create account", "create"]:
+
+        print("🆕 Creating a new account...\n")
+
+        username, password = create_account()
+        name = setup_name(username)
+        create_user(username,name,password)
+        save_session(username)
+        print("\n✅ Account created successfully!\n")
+        dashboard_player(name,username)
+        
+    elif choice in ["2", "login account", "login"]:
+
+        print("🔑 Login to your account\n")
+
+        result = login()
+    
+
+        if result:
+             name,username=result
+             save_session(username)
+             dashboard_player(name,username)
+
+        else:
+             print("Too many wrong attempts. Account locked.\n")
+             print("Returning to main menu...\n")
+
+
+
+    elif choice in ["3", "exit"]:
+
+        print("\n👋 Thank you for using the system!")
+        print("🚪 Exiting program...\n")
+        break
+
+
+    else:
+        print("❌ Invalid input. Please try again.\n")
+
+############################################################
+ LOCATION: login_system\security.py
+############################################################
+
+import hashlib
+
+def hashing_password(password):
+    encoded=password.encode()
+    hashed=hashlib.sha256(encoded).hexdigest()
+    return hashed
+
+############################################################
+ LOCATION: login_system\session_manager.py
+############################################################
+
+import os
+def save_session(username):
+    os.makedirs("login_system/data", exist_ok=True)
+    with open("login_system/data/session_user.txt", "w") as f:
+        f.write(username)
+
+
+def load_session():
+    try:
+        with open("login_system/data/session_user.txt", "r") as f:
+            username = f.read().strip()
+            if username == "":
+                return None
+            return username
+    except FileNotFoundError:
+        return None
+
+
+def clear_session():
+    with open("login_system/data/session_user.txt", "w") as f:
+        f.write("") 
+
+############################################################
+ LOCATION: login_system\database\connection.py
+############################################################
+
+from dotenv import load_dotenv
+import os
+import mysql.connector
+
+load_dotenv()
+
+def get_connection():
+    try:
+        db=mysql.connector.connect(
+            host=os.getenv("DB_HOST"),
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASSWORD"),
+            database=os.getenv("DB_NAME"),
+        )
+        return db
+    except mysql.connector.Error as err:
+        print("database connection failed",err)
+        return None
+
+############################################################
+ LOCATION: login_system\database\sql_handler.py
+############################################################
+
+from database.connection import get_connection
+
+
+# Create all tables (run once at start)
+def create_tables():
+    db = get_connection()
+    cursor = db.cursor()
+
+    users_table = """
+    CREATE TABLE IF NOT EXISTS users (
+        username VARCHAR(50) PRIMARY KEY,
+        name VARCHAR(50),
+        password VARCHAR(255),
+        lock_until BIGINT
+    )
+    """
+
+    rps_table = """
+    CREATE TABLE IF NOT EXISTS rps_stats (
+        username VARCHAR(50),
+        wins INT,
+        losses INT,
+        matches INT,
+        draws INT,
+        FOREIGN KEY (username) REFERENCES users(username)
+    )
+    """
+
+    hand_table = """
+    CREATE TABLE IF NOT EXISTS hand_cricket_stats (
+        username VARCHAR(50),
+        wins INT,
+        losses INT,
+        matches INT,
+        highest_score INT,
+        FOREIGN KEY (username) REFERENCES users(username)
+    )
+    """
+
+    cursor.execute(users_table)
+    cursor.execute(rps_table)
+    cursor.execute(hand_table)
+
+    db.commit()
+    cursor.close()
+    db.close()
+
+
+# Create a new user
+def create_user(username, name, password):
+    db = get_connection()
+    cursor = db.cursor()
+
+    user_query = """
+    INSERT INTO users (username, name, password, lock_until)
+    VALUES (%s, %s, %s, %s)
+    """
+
+    rps_query = """
+    INSERT INTO rps_stats (username, wins, losses, matches, draws)
+    VALUES (%s, %s, %s, %s, %s)
+    """
+
+    hand_query = """
+    INSERT INTO hand_cricket_stats (username, wins, losses, matches, highest_score)
+    VALUES (%s, %s, %s, %s, %s)
+    """
+
+    cursor.execute(user_query, (username, name, password, 0))
+    cursor.execute(rps_query, (username, 0, 0, 0, 0))
+    cursor.execute(hand_query, (username, 0, 0, 0, 0))
+
+    db.commit()
+    cursor.close()
+    db.close()
+
+
+def get_user(username):
+    db = get_connection()
+    cursor = db.cursor(dictionary=True)
+
+    query = "SELECT * FROM users WHERE username = %s"
+    cursor.execute(query, (username,))
+
+    user = cursor.fetchone()
+
+    cursor.close()
+    db.close()
+
+    return user
+
+
+def update_rps_stats(username, result):
+    db = get_connection()
+    cursor = db.cursor()
+
+    if result == "wins":
+        query = """
+        UPDATE rps_stats
+        SET wins = wins + 1,
+            matches = matches + 1
+        WHERE username = %s
+        """
+
+    elif result == "losses":
+        query = """
+        UPDATE rps_stats
+        SET losses = losses + 1,
+            matches = matches + 1
+        WHERE username = %s
+        """
+
+    elif result == "draws":
+        query = """
+        UPDATE rps_stats
+        SET draws = draws + 1,
+            matches = matches + 1
+        WHERE username = %s
+        """
+
+    cursor.execute(query, (username,))
+    db.commit()
+    cursor.close()
+    db.close()
+
+def update_hand_cricket_stats(username, result):
+    db = get_connection()
+    cursor = db.cursor()
+
+    if result == "wins":
+        query = """
+        UPDATE hand_cricket_stats
+        SET wins = wins + 1,
+            matches = matches + 1
+        WHERE username = %s
+        """
+
+    elif result == "losses":
+        query = """
+        UPDATE hand_cricket_stats
+        SET losses = losses + 1,
+            matches = matches + 1
+        WHERE username = %s
+        """
+
+    cursor.execute(query, (username,))
+    db.commit()
+    cursor.close()
+    db.close()
+
+def update_lock(username, lock_until):
+
+    db = get_connection()
+    cursor = db.cursor()
+
+    query = """
+    UPDATE users
+    SET lock_until = %s
+    WHERE username = %s
+    """
+
+    cursor.execute(query, (lock_until, username))
+
+    db.commit()
+    cursor.close()
+    db.close()
+
+def update_name(username, name):
+
+    db = get_connection()
+    cursor = db.cursor()
+
+    query = """
+    UPDATE users
+    SET name = %s
+    WHERE username = %s
+    """
+
+    cursor.execute(query, (name, username))
+
+    db.commit()
+    cursor.close()
+    db.close()
+
+def get_profile_stats(username):
+    db=get_connection()
+    cursor=db.cursor(dictionary=True)
+
+    rps_query="""
+    SELECT wins,losses,matches,draws
+    FROM rps_stats
+    WHERE username=%s
+"""
+    hc_query="""
+    SELECT wins,losses,matches
+    FROM hand_cricket_stats
+    WHERE username=%s
+"""
+
+    cursor.execute(rps_query,(username,))
+    rps_stats=cursor.fetchone()
+
+    cursor.execute(hc_query,(username,))
+    hc_stats=cursor.fetchone()
+
+    cursor.close()
+    db.close()
+
+    return {
+        "rps":rps_stats,
+        "hand_cricket":hc_stats
+    }
+def get_leaderboard(game):
+
+    db = get_connection()
+    cursor = db.cursor(dictionary=True)
+
+    if game == "rps":
+        query = """
+        SELECT username, wins, losses, draws, matches,
+               (wins * 100.0 / matches) AS win_rate
+        FROM rps_stats
+        WHERE matches >= 15
+        ORDER BY win_rate DESC
+        LIMIT 5
+        """
+
+    elif game == "hand_cricket":
+        query = """
+        SELECT username, wins, losses, matches,
+               (wins * 100.0 / matches) AS win_rate
+        FROM hand_cricket_stats
+        WHERE matches >= 15
+        ORDER BY win_rate DESC
+        LIMIT 5
+        """
+
+    cursor.execute(query)
+    result = cursor.fetchall()
+
+    cursor.close()
+    db.close()
+
+    return result
+
+############################################################
+ LOCATION: login_system\database\__init__.py
+############################################################
+
+
+
+############################################################
+ LOCATION: login_system\hand_cricket\ai_brainlogic.py
+############################################################
+
+import random
+number_choice=(1,2,3,4,5,6)
+
+motive_weights = {
+    "freestyle":    [1, 2, 1, 2, 1, 1],
+    "balanced":     [1, 2, 3, 3, 2, 1],
+    "aggressive":   [1, 1, 2, 3, 4, 4],
+    "conservative": [2, 3, 3, 2, 1, 1],
+    "desperate":    [1, 1, 1, 2, 5, 5],
+    "bowling_high":   [1, 1, 2, 2, 3, 3],
+    "bowling_normal": [1, 1, 2, 3, 3, 2],
+    "bowling_low":    [1, 1, 2, 3, 2, 2],
+}
+
+def get_motive(match,score,balls):
+    total_balls=match.get("total_balls")
+    target=match.get("target")
+
+    if match["batting"]=="computer":
+        if total_balls is None:
+            return "balanced"
+
+        if target:
+            remaining_balls=total_balls - balls
+            remaining_score=target - score
+            if remaining_balls==0:
+                req_runrate=remaining_score
+            else:
+                req_runrate=remaining_score/remaining_balls
+            if req_runrate <= 2:
+                motive ="freestyle"
+            elif req_runrate <= 4:
+                motive="balanced"
+            elif req_runrate <= 6:
+                motive="aggressive"
+            else:
+                motive="desperate"
+            return motive
+        else:
+            if balls==0:
+                return "aggressive"
+            else:
+                projected_runrate=score/balls
+                projected_final=projected_runrate*total_balls
+
+                if projected_runrate < 3:
+                    return "aggressive"
+                elif projected_runrate < 5:
+                    return "balanced"
+                else:
+                    return "conservative"
+
+    else:
+        if not total_balls:
+            return "bowling_high"
+        
+        if balls==0 or not target:
+            return "bowling_normal"
+        remaining=total_balls-balls
+        if remaining==0:
+            return "bowling_high"
+        
+        player_rate=(target-score)/remaining
+
+        if player_rate > 5:
+            return "bowling_high"
+        elif player_rate>3:
+            return "bowling_normal"
+        else:
+            return "bowling_low"
+
+def pick_number(motive):
+    weights=motive_weights.get(motive,[1,1,1,1,1,1])
+    return random.choices(number_choice,weights=weights)[0]
+
+def get_frequency_choice(history):
+    if len(history)<3:
+        return None
+    frequency={1:0,2:0,3:0,4:0,5:0,6:0}
+    for number in history:
+        frequency[number] +=1
+    return max(frequency,key=lambda x: frequency[x])
+
+def get_recency_choice(history):
+    if len(history)<5:
+        return None
+    last_5=history[-5:]
+    missing=[n for n in number_choice if n not in last_5]
+    if missing:
+       return random.choice(missing)
+    return None
+
+def get_bowling_choice(match, score, balls):
+    history = match.get("batting_history", [])
+    motive = get_motive(match, score, balls)
+
+    motive_w = list(motive_weights.get(motive, [1,1,1,1,1,1]))
+    freq_w = [1,1,1,1,1,1]
+    rec_w = [1,1,1,1,1,1]
+
+    freq_choice = get_frequency_choice(history)
+    if freq_choice:
+        freq_w[freq_choice - 1] = 10
+
+    if len(history) >= 5:
+        for n in history[-5:]:
+            rec_w[n-1] += 2
+
+    final_weights = [motive_w[i] + freq_w[i] + rec_w[i] for i in range(6)]
+    return random.choices(number_choice, weights=final_weights)[0]
+
+
+def get_batting_choice(match, score, balls):
+    history = match.get("bowling_history", [])
+    motive = get_motive(match, score, balls)
+
+    motive_w = list(motive_weights.get(motive, [1,1,1,1,1,1]))
+    freq_w = [1,1,1,1,1,1]
+    rec_w = [1,1,1,1,1,1]
+
+    freq_choice = get_frequency_choice(history)
+    if freq_choice:
+        freq_w[freq_choice - 1] = max(0, freq_w[freq_choice - 1] - 8)
+
+    if len(history) >= 5:
+        for n in history[-5:]:
+            rec_w[n-1] = max(0, rec_w[n-1] - 1)
+
+    final_weights = [motive_w[i] + freq_w[i] + rec_w[i] for i in range(6)]
+    final_weights = [max(0, w) for w in final_weights]
+    return random.choices(number_choice, weights=final_weights)[0]
+
+############################################################
+ LOCATION: login_system\hand_cricket\game_logic.py
+############################################################
+
+import random
+import time
+from .ai_brainlogic import get_motive,pick_number,get_bowling_choice,get_batting_choice
+
+
+random_commentary = [
+"Both players hiding their fingers carefully...",
+"The bowler squints at the batter's hand trying to guess the number.",
+"A quick shake of the hands before the next throw.",
+"The batter looks at the bowler suspiciously.",
+"The bowler adjusts his fingers slowly.",
+"Mind games happening between both players.",
+"The crowd watches the fingers closely.",
+"A moment of silence before the fingers are revealed.",
+"The batter smiles while showing the number.",
+"The bowler quickly flashes a number with confidence.",
+"Both players try to read each other's mind.",
+"A quick hand movement from the batter.",
+"The bowler hesitates before showing fingers.",
+"The tension rises as both reveal their numbers.",
+"The batter hides his hand behind his back first.",
+"A clever trick with the fingers!",
+"Both hands come out at the same time!",
+"The bowler studies the batter's fingers carefully.",
+"A calm moment before the next hand reveal.",
+"The players prepare their fingers for the next move."
+]
+
+out_commentary = [
+"Same fingers! OUT!",
+"Oh no! The numbers matched perfectly!",
+"The bowler guessed it right — OUT!",
+"The batter shows the same number — that's OUT!",
+"What a prediction by the bowler!",
+"The fingers match! The batter is gone!",
+"The bowler reads the batter's mind!",
+"Both hands show the same number — OUT!",
+"The trick failed! The batter is dismissed!",
+"Perfect guess by the bowler! OUT!"
+]
+
+four_commentary = [
+"A perfect FOUR with the fingers!",
+"Four fingers up! That's a boundary!",
+"The batter flashes FOUR confidently!",
+"Nice move! FOUR runs!",
+"The bowler didn't expect that FOUR!",
+"A quick FOUR from the batter!",
+"The batter shows four fingers proudly!",
+"FOUR! Smart choice!",
+"A clever FOUR from the batter!",
+"The fingers say FOUR!"
+]
+
+six_commentary = [
+"SIX fingers up! That's a big hit!",
+"Massive SIX from the batter!",
+"The batter boldly shows SIX!",
+"What a confident SIX!",
+"The bowler is shocked — SIX!",
+"A powerful SIX from the hand!",
+"The batter goes big with SIX!",
+"SIX! The crowd goes wild!",
+"The batter flashes six fingers!",
+"That's a huge SIX!"
+]
+
+
+exit_choice = ["stop", "exit"]
+number_choice = (1, 2, 3, 4, 5, 6)
+choice_toss = ("bat", "bowl")
+
+
+class CancelMatch(Exception):
+    pass
+
+
+def get_player_choice(name,timed=True):
+    while True:
+        if timed:
+            print("⏰ You have 3 seconds!")
+            start = time.time()
+        player_choice = player_choice = input(f"👉 {name}, your choice: ").lower().strip()
+
+        if timed:
+            elapsed = time.time() - start
+            if elapsed > 3:
+                print("⏰ Too slow! Penalty!")
+                return "penalty"
+
+        if player_choice in exit_choice:
+            raise CancelMatch
+
+        if player_choice.isdigit():
+            number = int(player_choice)
+            if number in number_choice:
+                return number
+
+        print("❌ Invalid input.")
+
+
+def toss_logic(name):
+
+    print("\n" + "=" * 35)
+    print("🎲 TOSS TIME")
+    print("=" * 35)
+
+    while True:
+        toss_choice = input(f"\n{name}, choose ODD or EVEN: ").lower().strip()
+
+        if toss_choice in ["odd", "even"]:
+            break
+
+        print("❌ Invalid choice. Type 'odd' or 'even'.")
+
+    player_number = get_player_choice(name,timed=False)
+    computer_number = random.choice(number_choice)
+
+    print(f"\n🎲 Toss numbers → {name}: {player_number} | Computer: {computer_number}")
+
+    total = player_number + computer_number
+    result = "even" if total % 2 == 0 else "odd"
+
+    if toss_choice == result:
+        print(f"\n🏆 {name} WON THE TOSS!")
+        return "player"
+    else:
+        print("\n💻 Computer WON THE TOSS!")
+        return "computer"
+
+
+def decide_innings(match):
+
+    toss_winner = toss_logic(match["name"])
+
+    if toss_winner == "player":
+        while True:
+            toss_decision = input(
+                f"\n{match['name']}, choose your decision:\n"
+                "👉 Type 'bat' or 'bowl': "
+            ).lower().strip()
+
+            if toss_decision in choice_toss:
+                break
+
+            print("❌ Invalid choice. Choose 'bat' or 'bowl'.")
+    else:
+        toss_decision = random.choice(choice_toss)
+        print(f"\n💻 Computer chooses to {toss_decision.upper()} first.\n")
+
+    if toss_decision == "bat":
+        batting = toss_winner
+        bowling = "computer" if toss_winner == "player" else "player"
+    else:
+        bowling = toss_winner
+        batting = "computer" if toss_winner == "player" else "player"
+
+    match["toss_winner"] = toss_winner
+    match["toss_decision"] = toss_decision
+    match["batting"] = batting
+    match["bowling"] = bowling
+    match["first_batter"] = batting
+
+
+def play_ball(match,score,balls):
+
+    if match["batting"] == "player":
+        batter_choice = get_player_choice(match["name"])
+        if isinstance(batter_choice,int):
+            match["batting_history"].append(batter_choice)
+
+        bowler_choice=get_bowling_choice(match,score,balls)
+        print(f"🎯 Ball → {match['name']}: {batter_choice} | Computer: {bowler_choice}")
+        if batter_choice == "penalty":
+            print("💸 Penalty! -20 runs!")
+            return "batting_penalty"
+
+    else:
+        batter_choice=get_batting_choice(match,score,balls)
+
+        bowler_choice = get_player_choice(match["name"])
+        if isinstance(bowler_choice,int):
+            match["bowling_history"].append(bowler_choice)
+
+        print(f"🎯 Ball → Computer: {batter_choice} | {match['name']}: {bowler_choice}")
+        if bowler_choice == "penalty":
+            print("💸 Too slow! Computer scores free runs!")
+            return "bowling_penalty"
+
+    if batter_choice == bowler_choice:
+        print(random.choice(out_commentary))
+        print(f"💥 OUT! {match['name'] if match['batting'] == 'player' else 'Computer'} is dismissed!\n")
+        return "out"
+    
+    
+    if batter_choice==4:
+        print(random.choice(four_commentary))
+
+    elif batter_choice==6:
+        print(random.choice(six_commentary))
+    
+    else:
+        print(random.choice(random_commentary))
+
+    return batter_choice
+
+
+def play_innings(match, label, total_balls=None):
+
+    print("\n" + "=" * 35)
+    print(f"🏏 {label}")
+    print("=" * 35)
+
+    if match["batting"] == "player":
+        print(f"\n🏏 {match['name']} is BATTING")
+        print("🎯 Computer is BOWLING\n")
+    else:
+        print("\n🏏 Computer is BATTING")
+        print(f"🎯 {match['name']} is BOWLING\n")
+
+    target = match.get("target")
+
+    if target:
+        print(f"\n🎯 Target to chase: {target}\n")
+
+    score = 0
+    balls = 0
+
+    while True:
+
+        result = play_ball(match,score,balls)
+
+        balls += 1
+
+        if result == "out":
+            break
+
+        if result == "batting_penalty":
+            score = max(0, score - 20)
+            print(f"📊 Score after penalty: {score}\n")
+            
+
+        elif result == "bowling_penalty":
+            score += 20
+            print(f"📊 Computer scores 20! Score: {score}\n")
+            
+        else:
+            score += result
+
+        if target and score >= target:
+            print("🎯 Target chased successfully!\n")
+            break
+
+        if total_balls and balls >= total_balls:
+            print("\n⏱ Overs completed!")
+            break
+
+        print(f"📊 Score: {score} | Balls: {balls}\n")
+        if target:
+            runs_remaining=target-score
+            if runs_remaining>0:
+                if total_balls:
+                    balls_left=total_balls-balls
+                    print(f"🎯 {runs_remaining} runs needed from {balls_left} balls\n")
+                else:
+                    print(f"🎯 {runs_remaining} runs needed to win\n")
+                
+
+    print(f"\n✅ Innings Finished → {score} runs ({balls} balls)\n")
+
+    return score, balls
+
+
+def win_announcement(match):
+
+    print("\n" + "=" * 40)
+    print("🏏        MATCH SUMMARY        🏏")
+    print("=" * 40)
+
+    winner_name = match["name"] if match["toss_winner"] == "player" else "Computer"
+
+    print(f"\n🎲 Toss: {winner_name} won the toss and chose to {match['toss_decision'].upper()} first\n")
+
+    print("📊 SCOREBOARD\n")
+    print(f"1️⃣  First Innings  : {match['first_score']} runs ({match['first_balls']} balls)")
+    print(f"2️⃣  Second Innings : {match['second_score']} runs ({match['second_balls']} balls)\n")
+
+    winner=None
+
+    if match["second_score"] > match["first_score"]:
+        winner = "computer" if match["first_batter"] == "player" else "player"
+    elif match["second_score"] < match["first_score"]:
+        winner = match["first_batter"]
+
+
+    if winner == "player":
+        print(f"\n🔥 {match['name']} WINS THE MATCH!\n")
+        return "wins"
+    elif winner == "computer":
+        print("\n💻 COMPUTER WINS THE MATCH!\n")
+        return "losses"
+
+
+def super_over(match):
+    while True:
+        print("\n" + "=" * 40)
+        print("🔥 SUPER OVER TIME! 🔥")
+        print("=" * 40)
+
+        score1, balls1 = play_innings(match, "SUPER OVER - INNINGS 1", total_balls=6)
+
+        match["batting"], match["bowling"] = match["bowling"], match["batting"]
+        match["target"] = score1 + 1
+
+        score2, balls2 = play_innings(match, "SUPER OVER - INNINGS 2", total_balls=6)
+        win_announcement(match)
+
+        print("\n" + "=" * 40)
+        print("🔥        SUPER OVER RESULT        🔥")
+        print("=" * 40)
+        print(f"\n{match['name']} : {score1} runs ({balls1} balls)")
+        print(f"Computer : {score2} runs ({balls2} balls)\n")
+        print("-" * 40)
+
+        if score1 > score2:
+            print(f"\n🏆 {match['name']} WINS THE MATCH AFTER SUPER OVER!\n")
+            return "wins"
+        elif score2 > score1:
+            print("\n💻 COMPUTER WINS THE MATCH AFTER SUPER OVER!\n")
+            return "losses"
+        else:
+            print("\n⚖️ SUPER OVER ALSO TIED! ANOTHER SUPER OVER\n")
+            continue
+
+
+def endless_mode(name):
+    try:
+        match = {"name": name,
+                 "batting_history":[],
+                 "bowling_history":[]
+    }
+
+        decide_innings(match)
+
+        match["first_score"], match["first_balls"] = play_innings(match, "FIRST INNINGS")
+
+        match["batting"], match["bowling"] = match["bowling"], match["batting"]
+        match["target"] = match["first_score"] + 1
+        input("press enter to continue: ")
+
+        match["second_score"], match["second_balls"] = play_innings(match, "SECOND INNINGS")
+
+        if match["first_score"] == match["second_score"]:
+            return super_over(match)
+
+        return win_announcement(match)
+
+    except CancelMatch:
+        return "cancel_match"
+
+
+def limited_mode(name):
+    try:
+        while True:
+            overs = input(f"\n{name}, enter number of overs (1-10): ").strip()
+
+            if overs.isdigit():
+                overs = int(overs)
+                if 1 <= overs <= 10:
+                    break
+
+            print("❌ Invalid input. Choose between 1 and 10 overs.")
+
+        total_balls = overs * 6
+
+        match = {"name": name,
+                 "batting_history":[],
+                 "bowling_history":[]
+    }
+
+        decide_innings(match)
+
+        match["first_score"], match["first_balls"] = play_innings(
+            match, "FIRST INNINGS (LIMITED MODE)", total_balls=total_balls
+        )
+
+        match["batting"], match["bowling"] = match["bowling"], match["batting"]
+        match["target"] = match["first_score"] + 1
+        input("press enter to continue: ")
+
+        match["second_score"], match["second_balls"] = play_innings(
+            match, "SECOND INNINGS (LIMITED MODE)", total_balls=total_balls
+        )
+
+        if match["first_score"] == match["second_score"]:
+            return super_over(match)
+
+        return win_announcement(match)
+
+    except CancelMatch:
+        return "cancel_match"
+
+############################################################
+ LOCATION: login_system\hand_cricket\main.py
+############################################################
+
+from .game_logic import endless_mode
+from .game_logic import limited_mode
+
+
+def hand_cricket_dashboard(name):
+
+    while True:
+
+        print("\n" + "="*45)
+        print("🏏              HAND CRICKET              🏏")
+        print("="*45)
+
+        print(f"\n👋 Welcome {name}!\n")
+
+        print("Choose a mode:\n")
+
+        print("1️⃣  Endless Mode")
+        print("2️⃣  Limited Mode")
+        print("3️⃣  Back to Dashboard")
+
+        print("\n" + "-"*45)
+
+        choice = input("👉 Enter your choice: ").lower().strip()
+
+        if choice in ["1", "endless", "endless mode"]:
+
+            print("\n🚀 Starting Endless Mode...\n")
+
+            result = endless_mode(name)
+            if result=="cancel_match":
+                continue
+
+            return result
+
+
+        elif choice in ["2", "limited", "limited mode"]:
+            result=limited_mode(name)
+
+            if result=="cancel_match":
+                continue
+            return result
+
+
+        elif choice in ["3", "back", "exit"]:
+
+            print("\n🔙 Returning to dashboard...\n")
+            return "cancel_match"
+
+
+        else:
+            print("\n❌ Invalid choice. Please try again.")
+
+############################################################
+ LOCATION: login_system\hand_cricket\__init__.py
+############################################################
+
+
+
+############################################################
+ LOCATION: login_system\rock_paper_scissor\main.py
+############################################################
+
+import random
+
+def play_rps(name):
+
+    
+    beats = {
+        "rock": "scissors",
+        "paper": "rock",
+        "scissors": "paper"
+    }
+
+    options = ["rock", "paper", "scissors", "stop", "exit"]
+    moves = ["rock", "paper", "scissors"]
+
+
+    def get_player_choice():
+        """Ask player for a valid choice."""
+        while True:
+
+            choice = input("Enter rock, paper, scissors ('exit' or 'stop'): ").lower().strip()
+
+            if choice == "scissor":
+                choice = "scissors"
+
+            if choice not in options:
+                print("Invalid option, try again.")
+            else:
+                return choice
+
+
+    def rules(player, computer):
+        """Winner decider for each round."""
+        if player == computer:
+            return "draw"
+
+        elif beats[player] == computer:
+            return "player"
+
+        else:
+            return "computer"
+
+
+    def update_score(result, player_score, computer_score, name):
+        """Update and print score."""
+        if result == "player":
+            player_score += 1
+            print(f"🔥 {name} wins this round!")
+
+        elif result == "computer":
+            computer_score += 1
+            print("💻 Computer wins this round!")
+
+        else:
+            print("🤝 It's a draw!")
+
+        return player_score, computer_score
+
+
+    def print_scoreboard(name, player_score, computer_score):
+        """Display current scoreboard."""
+        print("\n📊 Scoreboard")
+        print(f"{name}: {player_score}  |  Computer: {computer_score}\n")
+
+
+    def announce_winner(name, player_score, computer_score):
+        """Announce match winner."""
+
+        if player_score > computer_score:
+            print(f"\n🏆 {name} is the CHAMPION!\n")
+            return "wins"
+
+        elif player_score == computer_score:
+            print("\n⚖️ Match ended in a DRAW!\n")
+            return "draws"
+
+        else:
+            print("\n💻 Computer wins the MATCH!\n")
+            return "losses"
+
+
+    def get_rounds():
+        while True:
+            try:
+                rounds = int(input("Enter number of rounds till 20: "))
+
+                if 0 < rounds <= 20:
+                    return rounds
+                else:
+                    print("Invalid input, try again.")
+
+            except ValueError:
+                print("Invalid input, please enter a number.")
+
+
+    # Game Modes
+    def endless_mode(name):
+
+        print("\nType 'exit' or 'stop' anytime to return to dashboard")
+
+        player_score, computer_score = 0, 0
+
+        while True:
+
+            player = get_player_choice()
+
+
+            if player in ["rock", "paper", "scissors"]:
+
+                computer = random.choice(moves)
+
+                print(f"🤖 Computer chose: {computer.upper()}")
+
+                result = rules(player, computer)
+
+                player_score, computer_score = update_score(
+                    result, player_score, computer_score, name
+                )
+
+                print_scoreboard(name, player_score, computer_score)
+
+            elif player in ["stop", "exit"]:
+
+                announce_winner(name, player_score, computer_score)
+
+                print(f"Which mode next, {name}?")
+                return None
+
+                
+
+
+    def limited_mode(name, rounds):
+
+        print("\nType 'exit' or 'stop' anytime to return to dashboard")
+
+        player_score, computer_score = 0, 0
+
+        for current_round in range(1, rounds + 1):
+
+            print(f"\n⚔️ Round {current_round} – Fight!\n")
+
+            player = get_player_choice()
+
+            if player in ["stop", "exit"]:
+                print("Game stopped early")
+                return None
+
+            computer = random.choice(moves)
+
+            print(f"🤖 Computer chose: {computer.upper()}")
+
+            result = rules(player, computer)
+
+            player_score, computer_score = update_score(
+                result, player_score, computer_score, name
+            )
+
+            print_scoreboard(name, player_score, computer_score)
+
+        announce_winner(name, player_score, computer_score)
+
+        return None
+    
+    def ranked_mode(name):
+
+        print("\nType 'exit' or 'stop' anytime to return to dashboard")
+
+        player_score, computer_score = 0, 0
+        rounds=10
+        for current_round in range(1,rounds+1):
+
+            print(f"\n⚔️ Round {current_round} – Fight!\n")
+
+            player = get_player_choice()
+
+            if player in ["stop", "exit"]:
+                print("Game stopped early")
+                return None
+
+            computer = random.choice(moves)
+
+            print(f"🤖 Computer chose: {computer.upper()}")
+
+            result = rules(player, computer)
+
+            player_score, computer_score = update_score(
+                result, player_score, computer_score, name
+            )
+
+            print_scoreboard(name, player_score, computer_score)
+
+        result=announce_winner(name, player_score, computer_score)
+
+        return result
+
+
+    print("\n" + "=" * 40)
+    print(f"🔥 Welcome {name} to ROCK PAPER SCISSORS 🔥")
+    print("=" * 40 + "\n")
+
+
+    while True:
+
+        print("1️⃣ Endless Mode (stats not saved)")
+        print("2️⃣ Limited Mode (stats not saved)")
+        print("3️⃣ Ranked Mode")
+        print("4️⃣ Exit\n")
+
+        mode = input("Enter 1 or 2 or 3 or 4: ").lower().strip()
+
+        if mode in ["1", "endless", "e", "en"]:
+
+            endless_mode(name)
+            
+            break
+            
+
+
+        elif mode in ["2", "limited", "limit", "li"]:
+
+            while True:
+
+                rounds = get_rounds()
+
+                limited_mode(name, rounds)
+                break
+                
+        elif mode in ["3","ranked","ranked_mode"]:
+            result=ranked_mode(name)
+            if result==None:
+                break
+            return result
+
+
+
+        elif mode in ["4", "exit", "exi", "ex"]:
+
+            print("\n🎮 Thanks for playing! See you again!\n")
+
+            return "exit"
+
+
+        else:
+
+            print("Invalid input, please try again.")
+
+############################################################
+ LOCATION: login_system\rock_paper_scissor\__init__.py
+############################################################
+

@@ -1,15 +1,31 @@
-# built in
+
 import sys
-# PROJECT MODULES
-from file_handler import save_user,load_user,update_user
+from database.sql_handler import create_user,get_user,update_hand_cricket_stats,update_rps_stats,get_profile_stats,get_leaderboard
 from login_logic import create_account,login,setup_name
 from rock_paper_scissor.main import play_rps
 from session_manager import save_session,load_session,clear_session
 from hand_cricket.main import hand_cricket_dashboard
 
+
+def print_leaderboard(data):
+
+    print("\n🏆 Leaderboard")
+
+    for player in data:
+        print(
+            f"{player['username']} | "
+            f"Wins: {player['wins']} | "
+            f"Matches: {player['matches']} | "
+            f"Win Rate: {player['win_rate']:.2f}%"
+        )
+
+
 def profile_stats(name, username):
 
-    user = load_user()
+    stats = get_profile_stats(username)
+
+    rps = stats["rps"]
+    hc = stats["hand_cricket"]
 
     print("\n" + "="*50)
     print("📁                PROFILE STATS")
@@ -17,16 +33,12 @@ def profile_stats(name, username):
 
     print(f"\n👤 Player : {name}\n")
 
-    # -------- ROCK PAPER SCISSORS --------
-    rps_matches = user[username]["rps"]["matches"]
-    rps_wins = user[username]["rps"]["wins"]
-    rps_losses = user[username]["rps"]["losses"]
-    rps_draws = user[username]["rps"]["draws"]
+    rps_matches = rps["matches"]
+    rps_wins = rps["wins"]
+    rps_losses = rps["losses"]
+    rps_draws = rps["draws"]
 
-    if rps_matches > 0:
-        rps_win_rate = (rps_wins / rps_matches) * 100
-    else:
-        rps_win_rate = 0
+    rps_win_rate = (rps_wins / rps_matches * 100) if rps_matches else 0
 
     print("🪨 ROCK PAPER SCISSORS")
     print("-"*40)
@@ -39,16 +51,11 @@ def profile_stats(name, username):
 
     print("\n" + "-"*50)
 
-    # -------- HAND CRICKET --------
-    hc_matches = user[username]["hand_cricket"]["matches"]
-    hc_wins = user[username]["hand_cricket"]["wins"]
-    hc_losses = user[username]["hand_cricket"]["losses"]
-    hc_draws = user[username]["hand_cricket"]["draws"]
+    hc_matches = hc["matches"]
+    hc_wins = hc["wins"]
+    hc_losses = hc["losses"]
 
-    if hc_matches > 0:
-        hc_win_rate = (hc_wins / hc_matches) * 100
-    else:
-        hc_win_rate = 0
+    hc_win_rate = (hc_wins / hc_matches * 100) if hc_matches else 0
 
     print("\n🏏 HAND CRICKET")
     print("-"*40)
@@ -56,12 +63,13 @@ def profile_stats(name, username):
     print(f"🎮 Matches Played : {hc_matches}")
     print(f"🏆 Wins           : {hc_wins}")
     print(f"💀 Losses         : {hc_losses}")
-    print(f"🤝 Draws          : {hc_draws}")
     print(f"📈 Win Rate       : {hc_win_rate:.2f}%")
 
     print("\n" + "="*50)
 
     input("\nPress Enter to return to dashboard...")
+
+
 
 def dashboard_player(name,username):
         
@@ -78,7 +86,7 @@ def dashboard_player(name,username):
                         print("1️⃣  🪨 Rock Paper Scissors")
                         print("2️⃣  🏏 Hand Cricket ")
                         print("3️⃣  📁 Profile Stats")
-                        print("4️⃣  📊 Leaderboard (Coming Soon)")
+                        print("4️⃣  📊 Leaderboard")
                         print("5️⃣  🔓 Logout")
                         print("6️⃣  ❌ Exit Application")
 
@@ -92,43 +100,41 @@ def dashboard_player(name,username):
                                 if result == "exit":
                                      break
                                 if result:
-                                     user=load_user()
-                                     user[username]["rps"]["matches"] +=1
-                                     if result == "wins":
-                                          user[username]["rps"]["wins"] +=1
-                                     elif result == "losses":
-                                          user[username]["rps"]["losses"] +=1
-                                     elif result == "draws":
-                                          user[username]["rps"]["draws"] +=1
-
-                                     update_user(user)                                
+                                     update_rps_stats(username,result)                                
 
                         elif option_chosen in ["2","hand cricket","cricket"]:
                             while True:
                                  result=hand_cricket_dashboard(name)
-                                 if result == "exit":
+                                 if result == "cancel_match":
                                       break
                                  if result:
-                                      user=load_user()
-                                      user[username]["hand_cricket"]["matches"] +=1
-                                      if result == "wins":
-                                          user[username]["hand_cricket"]["wins"] +=1
-                                      elif result == "losses":
-                                          user[username]["hand_cricket"]["losses"] +=1
-                                      elif result == "draws":
-                                          user[username]["hand_cricket"]["draws"] +=1
-
-                                      update_user(user)                       
+                                      update_hand_cricket_stats(username,result)                       
                                       
 
 
                         elif option_chosen in ["3","profile stats"]:
-                            profile_stats(name,username)
+                             profile_stats(name,username)
 
 
                         elif option_chosen in ["4","leaderboard"]:
-                             print("Leaderboards is rolling out soon(stay tuned)")
-                            
+                             while True:
+                                  print("\n Leaderboard")
+                                  print("1. rock paper scissors")
+                                  print("2. hand cricket")
+                                  print("3.back")
+                                  choice=input("choose leaderboard: ").strip().lower()
+                                  if choice in ["1","rps","rock paper scissors"]:
+                                       data=get_leaderboard("rps")
+                                       print_leaderboard(data)
+
+                                  elif choice in ["2","hc","hand cricket"]:
+                                       data=get_leaderboard("hand_cricket")
+                                       print_leaderboard(data)
+
+                                  elif choice in ["3","exit"]:
+                                       break
+                                  else:
+                                       print("invalid input")
 
                         elif option_chosen in ["5","logout"]:
                             clear_session()
@@ -147,9 +153,9 @@ def dashboard_player(name,username):
 
 username=load_session()
 if username:
-     user=load_user()
-     if username in user:
-        name=user[username]["name"]
+     user=get_user(username)
+     if user:
+        name=user["name"]
         dashboard_player(name,username)
 
 while True:
@@ -175,8 +181,8 @@ while True:
         print("🆕 Creating a new account...\n")
 
         username, password = create_account()
-        save_user(username, password)
         name = setup_name(username)
+        create_user(username,name,password)
         save_session(username)
         print("\n✅ Account created successfully!\n")
         dashboard_player(name,username)
@@ -186,6 +192,7 @@ while True:
         print("🔑 Login to your account\n")
 
         result = login()
+    
 
         if result:
              name,username=result
